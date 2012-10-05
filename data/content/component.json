@@ -1,0 +1,16 @@
+{
+  "name": "node-swtor-content",
+  "repo": "gsmcwhirter/node-swtor-content",
+  "description": "node-swtor content",
+  "version": "0.0.1",
+  "keywords": [],
+  "dependencies": {
+    "component/popup": "*"
+  , "component/tip": "*"
+  , "component/notification": "*"
+  , "visionmedia/superagent": "*"
+  , "visionmedia/page.js": "*"
+  , "component/jquery": "*"
+  },
+  "development": {}
+}
