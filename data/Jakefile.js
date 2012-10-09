@@ -7,11 +7,17 @@ var path = require('path')
 
 desc('build all assets');
 task('build', [ 'build:component'
+              , 'build:dist/js/build.js'
+              , 'build:dist/css/build.css'        
               , 'build:dist/index.html'
               , 'build:dist/css/style.css'
               ], function (){
   
 });
+
+function copy(src, dest){
+  fs.createReadStream(src).pipe(fs.createWriteStream(dest));
+}
 
 namespace('build', function (){
 
@@ -26,7 +32,7 @@ namespace('build', function (){
   
   /*desc('moves the application js file');
   task('dist/js/application.js', ['dist/js', 'src/js/application.js'], function (){
-    fs.createReadStream('src/js/application.js').pipe(fs.createWriteStream('dist/js/application.js'));
+    
   });*/
   
   desc('build component pieces');
@@ -36,7 +42,7 @@ namespace('build', function (){
     var component = require('component')
       , outdir = 'src/js'
       , config = require(path.resolve(path.join(outdir, 'component.json')))
-      , pkgs = [];
+      , pkgs = []
       , Builder = require('component-builder')
       ;
       
@@ -105,11 +111,8 @@ namespace('build', function (){
         var name = config.name;
 
         css.write(obj.css);
-        if (standalone) js.write(';(function(){\n');
         js.write(obj.require);
         js.write(obj.js);
-        if (standalone) js.write('window.' + name + ' = require("' + config.name + '");\n');
-        if (standalone) js.write('})();');
 
         var duration = new Date - start;
         console.log('write', js.path);
@@ -120,6 +123,16 @@ namespace('build', function (){
         console.log();
       });
       
+  });
+  
+  desc('copies built component js files to dist');
+  file('dist/js/build.js', ['dist/js', 'src/js/build/build.js'], function (){
+    copy('src/js/build/build.js', 'dist/js/build.js');
+  });
+  
+  desc('copies build component css files to dist');
+  file('dist/css/build.css', ['dist/css', 'src/js/build/build.css'], function (){
+    copy('src/js/build/build.css', 'dist/css/build.css');
   });
   
   desc('builds stylus files')
