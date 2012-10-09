@@ -24,6 +24,11 @@ namespace('build', function (){
   desc('creates dist/js directory');
   directory('dist/js', ['dist']);
   
+  desc('moves the application js file');
+  task('dist/js/application.js', ['dist/js', 'src/js/application.js'], function (){
+    fs.createReadStream('src/js/application.js').pipe(fs.createWriteStream('dist/js/application.js'));
+  });
+  
   desc('build component pieces');
   task('component', ['dist/js'], function (){
   
