@@ -1,0 +1,22 @@
+{
+  "name": "node-swtor",
+  "version": "0.0.1",
+  "description": "SWTOR Combat Logging",
+  "main": "app.js",
+  "dependencies": {
+    "swtor-log-parser": "~0.0.1",
+    "mime": "~1.2.5",
+    "appjs": "~0.0.19",
+    "appjs-win32": "~0.0.19",
+    "jade": "~0.27.6",
+    "stylus": "~0.29.0",
+    "component": "~0.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "author": "Gregory McWhirter",
+  "license": "MIT"
+}
