@@ -1,5 +1,5 @@
 {
-  "name": "node-swtor-content",
+  "name": "node-swtor",
   "repo": "gsmcwhirter/node-swtor-content",
   "description": "node-swtor content",
   "version": "0.0.1",
@@ -12,5 +12,8 @@
   , "visionmedia/page.js": "*"
   , "component/jquery": "*"
   },
-  "development": {}
+  "development": {},
+  "scripts": [
+    "application.js"
+  ]
 }

@@ -24,18 +24,20 @@ namespace('build', function (){
   desc('creates dist/js directory');
   directory('dist/js', ['dist']);
   
-  desc('moves the application js file');
+  /*desc('moves the application js file');
   task('dist/js/application.js', ['dist/js', 'src/js/application.js'], function (){
     fs.createReadStream('src/js/application.js').pipe(fs.createWriteStream('dist/js/application.js'));
-  });
+  });*/
   
   desc('build component pieces');
   task('component', ['dist/js'], function (){
   
-    //The following is essentially copied from component/component/bin/component-install
+    //The following is essentially copied from component/component/bin/component-install and component/component/bin/component-build
     var component = require('component')
-      , config = require(path.resolve('src/component.json'))
+      , outdir = 'src/js'
+      , config = require(path.resolve(path.join(outdir, 'component.json')))
       , pkgs = [];
+      , Builder = require('component-builder')
       ;
       
       if (config.dependencies){
@@ -47,7 +49,7 @@ namespace('build', function (){
         pkg = parts.shift();
         var version = parts.shift() || 'master';
         pkg = component.install(pkg, version, {
-          dest: 'dist/js/components'
+          dest: path.resolve(path.join(outdir, 'components'))
         , force: false
         , dev: false
         });
@@ -86,6 +88,38 @@ namespace('build', function (){
           console.log('complete', pkg.name);
         });
       }
+      
+      //do component build
+      var js = fs.createWriteStream(path.join(outdir, 'build', 'build.js'));
+      var css = fs.createWriteStream(path.join(outdir, 'build', 'build.css'));
+
+      // build
+
+      var builder = new Builder(outdir);
+      var start = new Date;
+
+      console.log();
+      builder.build(function(err, obj){
+        if (err) throw err;
+
+        var name = config.name;
+
+        css.write(obj.css);
+        if (standalone) js.write(';(function(){\n');
+        js.write(obj.require);
+        js.write(obj.js);
+        if (standalone) js.write('window.' + name + ' = require("' + config.name + '");\n');
+        if (standalone) js.write('})();');
+
+        var duration = new Date - start;
+        console.log('write', js.path);
+        console.log('write', css.path);
+        console.log('js', (obj.js.length / 1024 | 0) + 'kb');
+        console.log('css', (obj.css.length / 1024 | 0) + 'kb');
+        console.log('duration', duration + 'ms');
+        console.log();
+      });
+      
   });
   
   desc('builds stylus files')
