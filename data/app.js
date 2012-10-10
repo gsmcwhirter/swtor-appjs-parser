@@ -1,6 +1,6 @@
 var app = module.exports = require('appjs');
 
-app.serveFilesFrom(__dirname + '/content');
+app.serveFilesFrom(__dirname + '/dist');
 
 var window = app.createWindow({
   width  : 640,

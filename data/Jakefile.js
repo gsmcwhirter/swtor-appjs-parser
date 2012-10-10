@@ -7,16 +7,21 @@ var path = require('path')
 
 desc('build all assets');
 task('build', [ 'build:component'
-              , 'build:dist/js/build.js'
-              , 'build:dist/css/build.css'        
-              , 'build:dist/index.html'
-              , 'build:dist/css/style.css'
+              , 'build:' + path.join('dist', 'js', 'build.js')
+              , 'build:' + path.join('dist', 'css', 'build.css')    
+              , 'build:' + path.join('dist', 'index.html')
+              , 'build:' + path.join('dist', 'css', 'style.css')
               ], function (){
   
 });
 
 function copy(src, dest){
-  fs.createReadStream(src).pipe(fs.createWriteStream(dest));
+  console.log("Copying %s to %s", path.resolve(src), path.resolve(dest));
+  //var srcdata = fs.readFileSync(path.resolve(src), 'utf8');
+  //fs.writeFileSync(path.resolve(dest), srcdata, 'utf8');
+  //console.log(srcdata);
+  fs.createReadStream(path.resolve(src)).pipe(fs.createWriteStream(path.resolve(dest)));
+  //console.log("Wrote %s bytes", writeStream.bytesWritten);
 }
 
 namespace('build', function (){
@@ -25,10 +30,16 @@ namespace('build', function (){
   directory('dist');
   
   desc('creates dist/css directory');
-  directory('dist/css', ['dist']);
+  directory(path.join('dist', 'css'), ['dist']);
   
   desc('creates dist/js directory');
-  directory('dist/js', ['dist']);
+  directory(path.join('dist', 'js'), ['dist']);
+  
+  desc('creates src/js/build directory');
+  directory(path.join('src', 'js', 'build'));
+  
+  desc('creates src/js/components directory');
+  directory(path.join('src', 'js', 'components'));
   
   /*desc('moves the application js file');
   task('dist/js/application.js', ['dist/js', 'src/js/application.js'], function (){
@@ -36,11 +47,11 @@ namespace('build', function (){
   });*/
   
   desc('build component pieces');
-  task('component', ['dist/js'], function (){
+  task('component', [path.join('dist', 'js'), path.join('src', 'js', 'build'), path.join('src', 'js', 'components')], function (){
   
     //The following is essentially copied from component/component/bin/component-install and component/component/bin/component-build
     var component = require('component')
-      , outdir = 'src/js'
+      , outdir = path.join('src', 'js')
       , config = require(path.resolve(path.join(outdir, 'component.json')))
       , pkgs = []
       , Builder = require('component-builder')
@@ -102,11 +113,15 @@ namespace('build', function (){
       // build
 
       var builder = new Builder(outdir);
+      console.log(builder);
+      console.log(builder.path("component.json"));
       var start = new Date;
 
       console.log();
       builder.build(function(err, obj){
-        if (err) throw err;
+        if (err) {
+          throw err;
+        }
 
         var name = config.name;
 
@@ -121,42 +136,43 @@ namespace('build', function (){
         console.log('css', (obj.css.length / 1024 | 0) + 'kb');
         console.log('duration', duration + 'ms');
         console.log();
+        complete();
       });
       
-  });
+  }, {async: true});
   
   desc('copies built component js files to dist');
-  file('dist/js/build.js', ['dist/js', 'src/js/build/build.js'], function (){
-    copy('src/js/build/build.js', 'dist/js/build.js');
+  file(path.join('dist', 'js', 'build.js'), ['component', path.join('dist', 'js'), path.join('src', 'js', 'build', 'build.js')], function (){
+    copy(path.join('src', 'js', 'build', 'build.js'), path.join('dist', 'js', 'build.js'));
   });
   
   desc('copies build component css files to dist');
-  file('dist/css/build.css', ['dist/css', 'src/js/build/build.css'], function (){
-    copy('src/js/build/build.css', 'dist/css/build.css');
+  file(path.join('dist', 'css', 'build.css'), [path.join('dist', 'css'), path.join('src', 'js', 'build', 'build.css')], function (){
+    copy(path.join('src', 'js', 'build', 'build.css'), path.join('dist', 'css', 'build.css'));
   });
   
   desc('builds stylus files')
-  file('dist/css/style.css', ['dist/css', 'src/stylus/style.styl'], function (){
+  file(path.join('dist', 'css', 'style.css'), [path.join('dist', 'css'), path.join('src', 'stylus', 'style.styl')], function (){
     console.log("Generating layout.css from stylus.");
 
-    var src = fs.readFileSync("src/stylus/style.styl", "utf8");
+    var src = fs.readFileSync(path.join('src', 'stylus', 'style.styl'), "utf8");
 
-    stylus.render(src, {filename: 'src/stylus/style.styl'}, function (err, css){
+    stylus.render(src, {filename: path.join('src', 'stylus', 'style.styl')}, function (err, css){
         if (err) throw err;
-        fs.writeFileSync("dist/css/style.css", css);
+        fs.writeFileSync(path.join('dist', 'css', 'style.css'), css);
         complete();
     });
   }, {async: true});
   
   desc('builds jade index file');
-  file('dist/index.html', ['dist', 'src/jade/index.jade'], function (){
+  file(path.join('dist', 'index.html'), ['dist', path.join('src', 'jade', 'index.jade')], function (){
     console.log("Generating index.html from jade.");
-    var src = fs.readFileSync("src/jade/index.jade")
-      , fn = jade.compile(src, {filename: "src/jade/index.jade"})
+    var src = fs.readFileSync(path.join('src', 'jade', 'index.jade'))
+      , fn = jade.compile(src, {filename: path.join('src', 'jade', 'index.jade')})
       , locals = {}
       ;
 
-    fs.writeFileSync("dist/index.html", fn(locals));
+    fs.writeFileSync(path.join('dist', 'index.html'), fn(locals));
   });
   
   

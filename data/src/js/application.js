@@ -1,7 +1,8 @@
 addEventListener('app-ready', function (err){
+  var $ = require('jquery');
   var test = node_require('./test')
     ;
     
-  body.innerHTML = "<pre>" + test.teststr + "\n\n" + test.getTestFile() + "</pre>";
+  $("p#test").html("<pre>" + test.teststr + "\n\n" + test.getTestFile() + "</pre>");
   
 });
