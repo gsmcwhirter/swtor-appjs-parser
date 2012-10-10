@@ -61,6 +61,22 @@ namespace('build', function (){
         pkgs = pkgs.concat(normalize(config.dependencies));
       }
       
+      var pkgcount = pkgs.length;
+      var pkgsdone = 0;
+      
+      function whenDone(err){
+        if (err) {
+          throw err; 
+        }
+        else {
+          pkgsdone += 1;
+        }
+        
+        if (pkgsdone === pkgcount){
+          doBuild();
+        }
+      }
+      
       pkgs.forEach(function (pkg){
         var parts = pkg.split('@');
         pkg = parts.shift();
@@ -71,6 +87,7 @@ namespace('build', function (){
         , dev: false
         });
         report(pkg);
+        pkg.on('end', whenDone);
         pkg.install();
       });
       
@@ -106,38 +123,40 @@ namespace('build', function (){
         });
       }
       
-      //do component build
-      var js = fs.createWriteStream(path.join(outdir, 'build', 'build.js'));
-      var css = fs.createWriteStream(path.join(outdir, 'build', 'build.css'));
+      function doBuild(){
+        //do component build
+        var js = fs.createWriteStream(path.join(outdir, 'build', 'build.js'));
+        var css = fs.createWriteStream(path.join(outdir, 'build', 'build.css'));
 
-      // build
+        // build
 
-      var builder = new Builder(outdir);
-      console.log(builder);
-      console.log(builder.path("component.json"));
-      var start = new Date;
+        var builder = new Builder(outdir);
+        console.log(builder);
+        console.log(builder.path("component.json"));
+        var start = new Date;
 
-      console.log();
-      builder.build(function(err, obj){
-        if (err) {
-          throw err;
-        }
-
-        var name = config.name;
-
-        css.write(obj.css);
-        js.write(obj.require);
-        js.write(obj.js);
-
-        var duration = new Date - start;
-        console.log('write', js.path);
-        console.log('write', css.path);
-        console.log('js', (obj.js.length / 1024 | 0) + 'kb');
-        console.log('css', (obj.css.length / 1024 | 0) + 'kb');
-        console.log('duration', duration + 'ms');
         console.log();
-        complete();
-      });
+        builder.build(function(err, obj){
+          if (err) {
+            throw err;
+          }
+
+          var name = config.name;
+
+          css.write(obj.css);
+          js.write(obj.require);
+          js.write(obj.js);
+
+          var duration = new Date - start;
+          console.log('write', js.path);
+          console.log('write', css.path);
+          console.log('js', (obj.js.length / 1024 | 0) + 'kb');
+          console.log('css', (obj.css.length / 1024 | 0) + 'kb');
+          console.log('duration', duration + 'ms');
+          console.log();
+          complete();
+        });
+      }
       
   }, {async: true});
   
