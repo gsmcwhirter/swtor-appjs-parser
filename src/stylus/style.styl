@@ -1,4 +1,41 @@
+full-width = 784px
+full-height = 462px
+head-height = 20px
+head-border = 1px
+foot-height = 20px
+foot-border = 1px
+col-padding = 5px
+
 html, body
   background-color white
   color black
-  
+  width full-width
+  height full-height
+  margin 0px
+  padding 0px
+
+  header
+    clear both
+    height head-height
+    border-bottom head-border solid black
+    width full-width
+
+  footer
+    clear both
+    height foot-height
+    border-top foot-border solid black
+    width full-width
+
+  #leftpane, #rightpane
+    height full-height - head-height - head-border - foot-height - foot-border - (2 * col-padding)
+    padding col-padding
+
+  #leftpane
+    float left
+    width (.6875 * full-width) - (2 * col-padding)
+    border-right 1px solid black
+
+  #rightpane
+    float right
+    width (.3 * full-width) - (col-padding)
+    padding-left 0px
