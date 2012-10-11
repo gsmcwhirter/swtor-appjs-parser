@@ -1,10 +1,19 @@
 full-width = 784px
+left-width = full-width * .7 - 1px
+right-width = full-width * .3
 full-height = 462px
-head-height = 20px
+head-font-size = 24px
+head-height = head-font-size + 8px
 head-border = 1px
+head-color = #62AA00
 foot-height = 20px
 foot-border = 1px
-col-padding = 5px
+main-border-color = #aaa
+second-border-color = #ddd
+link-color = #62AA00
+selected-color = #00B7FF
+selected-link-color = black
+header-bg-color = #ccc
 
 html, body
   background-color white
@@ -17,25 +26,60 @@ html, body
   header
     clear both
     height head-height
-    border-bottom head-border solid black
+    border-bottom head-border solid main-border-color
     width full-width
+    font-weight bold
+    
+    h1
+      font-size head-font-size
+      color head-color
+      padding 4px 5px
+      margin 0px
 
   footer
     clear both
     height foot-height
-    border-top foot-border solid black
+    border-top foot-border solid main-border-color
     width full-width
 
+  .buttonset
+    a
+      width right-width - 10px
+      margin 0
+      display block
+      font-variant small-caps
+      padding 1px 5px
+      border-top 1px solid second-border-color
+      border-bottom 1px solid second-border-color
+      text-decoration none
+      color link-color
+      background-color #eee
+    a.selected
+      background-color selected-color
+      color selected-link-color
+    a + a
+      border-top none
+
   #leftpane, #rightpane
-    height full-height - head-height - head-border - foot-height - foot-border - (2 * col-padding)
-    padding col-padding
+    height full-height - head-height - head-border - foot-height - foot-border
+    
+    .header
+      background-color header-bg-color
+      font-weight bold
+      border-bottom second-border-color
+      height header-height
+      padding 2px 5px
 
   #leftpane
     float left
-    width (.6875 * full-width) - (2 * col-padding)
-    border-right 1px solid black
+    width left-width
+    border-right 1px solid main-border-color
+    //background-color #eee
+    
+    p#test
+      padding 5px
 
   #rightpane
     float right
-    width (.3 * full-width) - (col-padding)
-    padding-left 0px
+    width right-width
+    background-color header-bg-color

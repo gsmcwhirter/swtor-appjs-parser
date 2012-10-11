@@ -5,11 +5,10 @@
   "version": "0.0.1",
   "keywords": [],
   "dependencies": {
-    "component/popup": "*"
-  , "component/tip": "*"
-  , "component/notification": "*"
-  , "visionmedia/superagent": "*"
+    "visionmedia/superagent": "*"
   , "visionmedia/page.js": "*"
+  , "component/jquery": "*"
+  , "retrofox/buttonset": "*"
   , "component/jquery": "*"
   },
   "development": {},
