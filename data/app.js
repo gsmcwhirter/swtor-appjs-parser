@@ -18,6 +18,7 @@ window.on('create', function(){
 
 window.on('ready', function(){
   console.log("Window Ready");
+  console.log(app);
   window.frame.show();
   window.node_require = require;
   window.node_process = process;
