@@ -1,6 +1,31 @@
 var app = module.exports = require('appjs')
   , ConsoleStream = require('console_stream')
+  , Settings = require('./settings');
+  , path = require('path')
+  , overlays_available = [
+      "Damage Done"
+    , "Damage Done per Second"
+    , "Damage Taken"
+    , "Damage Taken per Second"
+    , "Healing Done"
+    , "Healing Done per Second"
+    , "Healing Done per Resource"
+    , "Healing Received"
+    , "Healing Received per Second"
+    , "Threat"
+    , "Threat per Second"
+    ]
+  , default_settings = {
+      "log_dir": null
+    , "overlays": {}
+    }
   ;
+  
+overlays_available.forEach(function (overlay){
+  default_settings.overlays[overlay] = false;
+});
+  
+var settings = new Settings(path.resolve(path.join(__dirname, "..", "config.json")), default_settings);
 
 app.serveFilesFrom(__dirname + '/content');
 
@@ -14,6 +39,7 @@ console.log(window);
 
 window.on('create', function(){
   console.log("Window Created");
+  settings.load();
 });
 
 window.on('ready', function(){
@@ -23,6 +49,8 @@ window.on('ready', function(){
   window.node_require = require;
   window.node_process = process;
   window.node_module = module;
+  window.app_settings = settings;
+  window.app_overlays = overlays_available;
 
   var consoleStream = new ConsoleStream(window.console)
     , desc = { configurable: true,
@@ -53,5 +81,6 @@ window.on('ready', function(){
 });
 
 window.on('close', function(){
+  settings.save();
   console.log("Window Closed");
 });

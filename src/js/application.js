@@ -4,7 +4,24 @@ addEventListener('app-ready', function (err){
   var test = node_require('./test')
     ;
     
-  $("p#test").html("<pre>" + test.teststr + "\n\n" + test.getTestFile() + "</pre>");
+  var showing_dir_selector = false;
+  $("a#log_dir_button").on('click', function (){
+    if (showing_dir_selector) return;
+    
+    window.frame.openDialog({
+      type: 'open'
+    , title: 'Select Combat Log Directory'
+    , multiSelect: false
+    , dirSelect: true
+    }, function (err, files){
+      showing_dir_selector = false;
+      files.forEach(function (file){
+        app_settings.log_dir = file;
+        $("#log_dir_input").val(file);
+        console.log(file);
+      });
+    });
+  });
   
 });
 
@@ -18,18 +35,10 @@ var ButtonSet = require("buttonset")
     , multiple: false
     })
   ;
-  
-overlays.add("Damage Done");
-overlays.add("Damage Done per Second");
-overlays.add("Damage Taken");
-overlays.add("Damage Taken per Second")
-overlays.add("Healing Done");
-overlays.add("Healing Done per Second");
-overlays.add("Healing Done per Resource");
-overlays.add("Healing Received");
-overlays.add("Healing Received per Second");
-overlays.add("Threat");
-overlays.add("Threat per Second");
+
+application_overlays.forEach(function (overlay){
+  overlays.add(overlay);
+});
 
 overlays.on('set', function (button, index){
   console.log('SET overlays button "%s". index: %s', button.text(), index);
