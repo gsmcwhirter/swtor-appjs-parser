@@ -6,26 +6,29 @@ html
     link(rel="stylesheet", href="css/style.css")
 
   body
-    header 
-      h1 SWTOR Combat Meters
-    #rightpane
-      .header Menu
-      nav#menu
-      .header Overlays
-      #overlay-selector
-    #leftpane
-      
-      #config
-        .header Configuration
-        div
-          form.buttonset
-            input(type="text", name="log_dir", id="log_dir_input")
-            a(href="#" id="log_dir_button") Browse...
-      #stats
-        .header Combat Statistics
-        div
-        p#test
-    footer
+    #all
+      header
+        a#close(href="#") x
+        a#minimize(href="#") _
+        h1 SWTOR Combat Meters
+      #rightpane
+        .header Menu
+        nav#menu
+        .header Overlays
+        #overlay-selector
+      #leftpane
+
+        #config
+          .header Configuration
+          div
+            form.buttonset
+              input#log_dir_input(type="text", name="log_dir")
+              a#log_dir_button(href="#", style="display: inline;") Browse...
+        #stats
+          .header Combat Statistics
+          div
+          p#test
+      footer
 
 
     script(src="js/build.js", type="text/javascript")

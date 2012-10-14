@@ -10,6 +10,7 @@ task('build', [ 'build:component'
               , 'build:' + path.join('data', 'content', 'js', 'build.js')
               , 'build:' + path.join('data', 'content', 'css', 'build.css')
               , 'build:' + path.join('data', 'content', 'index.html')
+              , 'build:' + path.join('data', 'content', 'overlay.html')
               , 'build:' + path.join('data', 'content', 'css', 'style.css')
               ], function (){
                 console.log();
@@ -193,6 +194,18 @@ namespace('build', function (){
       ;
 
     fs.writeFileSync(path.join('data', 'content', 'index.html'), fn(locals));
+  });
+
+  desc('builds jade overlay file');
+  file(path.join('data', 'content', 'overlay.html'), [path.join('data', 'content'), path.join('src', 'jade', 'overlay.jade')], function (){
+    console.log();
+    console.log("Generating overlay.html from jade");
+    var src = fs.readFileSync(path.join('src', 'jade', 'overlay.jade'))
+      , fn = jade.compile(src, {filename: path.join('src', 'jade', 'index.jade')})
+      , locals = {}
+      ;
+
+    fs.writeFileSync(path.join('data', 'content', 'overlay.html'), fn(locals));
   });
 
 

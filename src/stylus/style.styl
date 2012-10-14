@@ -1,12 +1,14 @@
-full-width = 784px
+full-width = 793px
 left-width = full-width * .7 - 1px
 right-width = full-width * .3
-full-height = 462px
+full-height = 472px
+titlebar-height = 32px
 head-font-size = 24px
 head-height = head-font-size + 8px
 head-border = 1px
-head-color = #62AA00
-foot-height = 20px
+//head-color = #62AA00
+head-color = black
+foot-height = 16px
 foot-border = 1px
 main-border-color = #aaa
 second-border-color = #ddd
@@ -14,22 +16,61 @@ link-color = #62AA00
 selected-color = #00B7FF
 selected-link-color = black
 header-bg-color = #ccc
+border-rad = 9px
+
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-button:start:decrement { display: block; width: 5px; height: 5px; background-color: transparent; border-left: 1px solid rgba(0,0,0,.1); }
+::-webkit-scrollbar-button:end:increment { display: block; width: 5px; height: 5px; background-color: transparent; border-left: 1px solid rgba(0,0,0,.1);}
+::-webkit-scrollbar-track{border-left: 1px solid rgba(0,0,0,.1); background: transparent; padding-left: 1px;}
+::-webkit-scrollbar-track:enabled { background-color: transparent; }
+::-webkit-scrollbar-track-piece { background-color: transparent; border: none; margin: 0; }
+::-webkit-scrollbar-thumb:window-inactive{}
+::-webkit-scrollbar-thumb{-webkit-border-radius: 5px; border: 1px solid #222; background: rgba(0,0,0,.3);}
+::-webkit-scrollbar-thumb:vertical { height: 30px;}
+::-webkit-scrollbar-thumb:horizontal { width: 30px;}
 
 html, body
-  background-color white
+  background-color transparent
   color black
   width full-width
   height full-height
   margin 0px
   padding 0px
 
+  #all
+    border-radius border-rad
+    //box-shadow 0 4px 20px rgba(0,0,0,.5)
+    background-color white
+
   header
+    background-color #aaa
+    height titlebar-height
+    border-top-left-radius border-rad
+    border-top-right-radius border-rad
     clear both
     height head-height
     border-bottom head-border solid main-border-color
     width full-width
     font-weight bold
-    
+
+    a
+      display block
+      float right
+      margin-right 15px
+      border-radius 3px
+      color white
+      font-weight bold
+      text-decoration none
+      width 20px
+      text-align center
+    a + a
+      margin-right 5px
+    a#close
+      background-color red
+    a#minimize
+      background-color #ccc
+
     h1
       font-size head-font-size
       color head-color
@@ -41,6 +82,10 @@ html, body
     height foot-height
     border-top foot-border solid main-border-color
     width full-width
+    background-color #aaa
+    font-size 2px
+    border-bottom-left-radius border-rad
+    border-bottom-right-radius border-rad
 
   .buttonset
     a
@@ -61,8 +106,8 @@ html, body
       border-top none
 
   #leftpane, #rightpane
-    height full-height - head-height - head-border - foot-height - foot-border
-    
+    height (full-height) - (head-height) - (head-border) - (foot-height) - (foot-border) - (titlebar-height)
+
     .header
       background-color header-bg-color
       font-weight bold
@@ -75,7 +120,7 @@ html, body
     width left-width
     border-right 1px solid main-border-color
     //background-color #eee
-    
+
     p#test
       padding 5px
 
