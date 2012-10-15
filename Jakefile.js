@@ -219,6 +219,8 @@ namespace('build', function (){
       items.forEach(function (item){
         copy(path.join('data', 'icons', item), path.join('data', 'content', 'icons', item));
       });
+
+      complete();
     });
   }, {async: true});
 
