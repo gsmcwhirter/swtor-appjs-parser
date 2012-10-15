@@ -45,19 +45,18 @@ Settings.prototype.save = function (){
     }
   }*/
 
-  console.log("test");
-  console.log(this);
-  console.log(this._data);
-  console.log(this._filename);
+  //console.log(this);
+  //console.log(this._data);
+  //console.log(this._filename);
   try{
-  console.log(JSON);
-  console.log(JSON.stringify(this._data));
+  //console.log(JSON);
+  //console.log(JSON.stringify(this._data));
 
   //console.log(this._data);
   var writeData = JSON.stringify(this._data, null, 2);
   //var writeData = JSON.stringify(this._data);
   //console.log(writeData);
-  console.log(this._filename);
+  //console.log(this._filename);
 
   return fs.writeFileSync(this._filename, writeData);
   }

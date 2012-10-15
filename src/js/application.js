@@ -8,6 +8,12 @@ var $ = require("jquery")
   , overlays_set = false
   , menu = {}
   , enablebutton = {}
+  , parser = null
+  , parser_data = {
+    total_dmg: {}
+  , total_heals: {}
+  , unknown_events: {}
+  }
   ;
 
 /* Helpers for opening overlays on application load */
@@ -39,10 +45,27 @@ function _openOverlays(){
   setTimeout(_openOverlays, 100);
 }
 
+function getParser(){
+  return parser;
+}
+
+function getParserData(){
+  return parser_data;
+}
+
+window.getParser = getParser;
+window.getParserData = getParserData;
+
 /* Set up application listeners etc. */
 addEventListener('app-ready', function (err){
   console.log('app-ready triggered');
   console.log(app_overlays);
+
+  /* require the combat log parser */
+  var slp = node_require('swtor-log-parser')
+    , fs = node_require('fs')
+    , path = node_require('path')
+    ;
 
   overlays = new ButtonSet("#overlay-selector", {
       unselectable: false
@@ -170,6 +193,8 @@ addEventListener('app-ready', function (err){
 
 
       overlay_windows[button.text()].on('ready', function (){
+        overlay_windows[button.text()].getParser = getParser;
+        overlay_windows[button.text()].getParserData = getParserData;
         overlay_windows[button.text()].overlay_name = button.text();
         configureOverlay(overlay_windows[button.text()]);
         overlay_windows[button.text()].frame.show();
@@ -235,7 +260,7 @@ addEventListener('app-ready', function (err){
     }
   });
 
-  _openOverlays();
+  setTimeout(_openOverlays, 1000);
 
 
   console.log(app_settings.overlays);
@@ -245,7 +270,6 @@ addEventListener('app-ready', function (err){
   var showing_dir_selector = false;
   $("a#log_dir_button").on('click', function (){
     if (showing_dir_selector) return;
-    var path = node_require('path');
 
     window.frame.openDialog({
       type: 'open'
@@ -275,9 +299,29 @@ addEventListener('app-ready', function (err){
     });
   });
 
-  var last_ldi = app_settings.log_dir
-    , last_gsk = app_settings.group_sync_key
+  var last_ldi = ""
+    , last_gsk = ""
     ;
+
+  function setConfigLasts(){
+    var restart = false;
+    console.log("setConfigLasts");
+    console.log(last_ldi);
+    console.log(app_settings.log_dir.substring(0));
+    if (last_ldi !== app_settings.log_dir.substring(0)){
+      restart = true;
+    }
+
+    last_ldi = app_settings.log_dir.substring(0);
+    last_gsk = app_settings.group_sync_key.substring(0);
+
+    if (restart){
+      console.log("calling restartParser");
+      restartParser();
+    }
+  }
+
+  setTimeout(setConfigLasts, 100);
 
   $("#log_dir_input, #group_sync_key").on('blur keydown keypress change', function (){
     if ($(this).attr('id') === "log_dir_input" && $(this).val() !== last_ldi){
@@ -299,8 +343,8 @@ addEventListener('app-ready', function (err){
   });
 
   $("#config .savebutton").click(function (){
-    app_settings.log_dir = last_ldi = $("#log_dir_input").val();
-    app_settings.group_sync_key = last_gsk = $("#group_sync_key").val();
+    app_settings.log_dir = $("#log_dir_input").val();
+    app_settings.group_sync_key = $("#group_sync_key").val();
     app_settings.save();
 
     $("#log_dir_input, #group_sync_key").blur();
@@ -314,4 +358,77 @@ addEventListener('app-ready', function (err){
   /* Set up the saved group sync key, if any */
   $("#group_sync_key").val(app_settings.group_sync_key || "");
 
+  /* Start the parser */
+  function restartParser(){
+    if (parser && typeof parser.stop === "function"){
+      console.log("stopping parser")
+      parser.on('stop', function (){
+        console.log("parser stopped. restarting");
+        //parser = null;
+        //restartParser();
+      })
+      parser.stop();
+    }
+    else if (fs.existsSync(app_settings.log_dir) && fs.statSync(app_settings.log_dir).isDirectory()) {
+      console.log("starting parser");
+      parser = new slp.CombatLogParser(app_settings.log_dir, true);
+
+      parser.on('start', function (){
+        console.log('parser started');
+        console.log(parser);
+      });
+
+      parser.on('error', function (err){
+        console.log("Error: " + err);
+      });
+
+      parser.on('data', function (obj){
+        if (obj){
+          console.log(obj);
+          var identifier;
+          if (obj.effect.name === "Damage"){
+            if (obj.event_source.is_player || !obj.event_source.unique_id){
+              identifier = obj.event_source.name;
+            }
+            else {
+              identifier = obj.event_source.name + ":" + obj.event_source.unique_id;
+            }
+
+            if (!parser_data.total_dmg[identifier]) parser_data.total_dmg[identifier] = 0;
+
+            parser_data.total_dmg[identifier] += obj.effect_value.amt;
+          }
+          else if (obj.effect.name === "Heal"){
+            if (obj.event_source.is_player || !obj.event_source.unique_id){
+              identifier = obj.event_source.name;
+            }
+            else {
+              identifier = obj.event_source.name + ":" + obj.event_source.unique_id;
+            }
+
+            if (!parser_data.total_heals[identifier]) parser_data.total_heals[identifier] = 0;
+
+            parser_data.total_heals[identifier] += obj.effect_value.amt;
+          }
+          else {
+            parser_data.unknown_events[obj.effect.name] = (parser_data.unknown_events[obj.effect.name] || 0) + 1;
+          }
+
+          console.log(parser_data.total_dmg);
+          console.log(parser_data.total_heals);
+          console.log(parser_data.unknown_events);
+          console.log();
+        }
+        else {
+          console.log("data event with no data");
+        }
+      });
+
+      parser.start();
+    }
+    else {
+      //parser = null;
+      console.log("combat log directory doesn't exist or isn't a directory");
+    }
+  }
 });
