@@ -1,5 +1,17 @@
 !!! 5
 html
   head
-  body(style="background-color: black;")
-    #overlay_content
+    title
+    link(rel="stylesheet", href="css/build.css")
+    link(rel="stylesheet", href="css/style.css")
+  body.overlay
+    .all
+      header
+        a#close.winctl(href="#") x
+        h1 Overlay
+      .content
+      footer
+
+    script(src="js/build.js", type="text/javascript")
+    script(type="text/javascript")
+      require('node-swtor/overlay');

@@ -14,5 +14,6 @@
   "development": {},
   "scripts": [
     "application.js"
+  , "overlay.js"
   ]
 }

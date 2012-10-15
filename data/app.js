@@ -16,7 +16,8 @@ var app = module.exports = require('appjs')
     , "Threat per Second"
     ]
   , default_settings = {
-      "log_dir": null
+      "log_dir": ""
+    , "winpos": {}
     , "overlays": {}
     }
   , overlay_windows = {}
@@ -40,18 +41,21 @@ var window = app.createWindow({
 , opacity: 1
 , showChrome: false
 , alpha: true
+, disableSecurity: true
 });
-
-//var fileSelector = app.createWindow({});
 
 function createOverlay(){
   return app.createWindow('appjs/overlay.html', {
     width: 200
-  , height: 200
+  , height: 300
+  , icons: __dirname + "/icons"
   , showChrome: false
   , topmost: true
-  , opacity: 0.5
+  , opacity: 1
   , alpha: true
+  , resizable: false
+  , left: 0
+  , top: 0
   });
 }
 
@@ -59,6 +63,8 @@ function F12(e){ return e.keyIdentifier === 'F12' }
 function Command_Option_J(e){ return e.keyCode === 74 && e.metaKey && e.altKey }
 
 function configureWindow(win){
+  win.main_window = window;
+
   win.addEventListener('keydown', function(e){
     if (F12(e) || Command_Option_J(e)) {
       win.frame.openDevTools();
@@ -69,7 +75,7 @@ function configureWindow(win){
     console.log(e);
   });
 
-  win.dispatchEvent(new win.Event('app-ready'));
+  //win.dispatchEvent(new win.Event('app-ready'));
 }
 
 console.log(window);
@@ -89,7 +95,6 @@ window.on('ready', function(){
   window.app_overlays = overlays_available;
   window.createOverlay = createOverlay;
   window.configureOverlay = configureWindow;
-  //window.fileSelector = fileSelector;
   window.overlay_windows = overlay_windows;
 
   var consoleStream = new ConsoleStream(window.console)
@@ -108,7 +113,6 @@ window.on('ready', function(){
 });
 
 window.on('close', function(){
-  settings.save();
   for (var key in overlay_windows){
     if (overlay_windows[key] && typeof overlay_windows[key].close === "function"){
       overlay_windows[key].close();

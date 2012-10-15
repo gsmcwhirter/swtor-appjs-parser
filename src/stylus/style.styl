@@ -1,10 +1,9 @@
 full-width = 793px
-left-width = full-width * .7 - 1px
-right-width = full-width * .3
+left-width = full-width * .7 - 2px
+right-width = full-width * .3 - 1px
 full-height = 472px
-titlebar-height = 32px
 head-font-size = 24px
-head-height = head-font-size + 8px
+titlebar-height = head-font-size + 8px
 head-border = 1px
 //head-color = #62AA00
 head-color = black
@@ -17,6 +16,14 @@ selected-color = #00B7FF
 selected-link-color = black
 header-bg-color = #ccc
 border-rad = 9px
+
+overlay-full-width = 183px
+overlay-full-height = 252px
+overlay-font-size = 16px
+overlay-titlebar-height = overlay-font-size + 4px
+overlay-foot-height = 12px
+overlay-border-rad = 6px
+
 
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -33,16 +40,17 @@ border-rad = 9px
 html, body
   background-color transparent
   color black
-  width full-width
-  height full-height
   margin 0px
   padding 0px
 
-  #all
+body.main
+  width full-width
+  height full-height
+  .all
     border-radius border-rad
     //box-shadow 0 4px 20px rgba(0,0,0,.5)
     background-color white
-    //border 1px solid black
+    border 1px solid black
 
   header
     background-color #aaa
@@ -50,9 +58,8 @@ html, body
     border-top-left-radius border-rad
     border-top-right-radius border-rad
     clear both
-    height head-height
     border-bottom head-border solid main-border-color
-    width full-width
+    width full-width - 2px
     font-weight bold
 
     img#app_icon
@@ -85,12 +92,13 @@ html, body
       color head-color
       padding 4px 5px
       margin 0px
+      width full-width - 10px
 
   footer
     clear both
     height foot-height
     border-top foot-border solid main-border-color
-    width full-width
+    width full-width - 2px
     background-color #aaa
     font-size 2px
     border-bottom-left-radius border-rad
@@ -114,8 +122,8 @@ html, body
     a + a
       border-top none
 
-  #leftpane, #rightpane
-    height (full-height) - (head-height) - (head-border) - (foot-height) - (foot-border) - (titlebar-height)
+  .leftpane, .rightpane
+    height (full-height) - (head-border) - (foot-height) - (foot-border) - (titlebar-height)
 
     .header
       background-color header-bg-color
@@ -124,7 +132,7 @@ html, body
       height header-height
       padding 2px 5px
 
-  #leftpane
+  .leftpane
     float left
     width left-width
     border-right 1px solid main-border-color
@@ -133,7 +141,65 @@ html, body
     p#test
       padding 5px
 
-  #rightpane
+  .rightpane
     float right
     width right-width
     background-color header-bg-color
+
+body.overlay
+  width overlay-full-width
+  height overlay-full-height
+
+  .all
+    border-radius overlay-border-rad
+    //box-shadow 0 4px 20px rgba(0,0,0,.5)
+    background-color white
+    border 1px solid black
+
+  header
+    background-color #aaa
+    height overlay-titlebar-height
+    border-top-left-radius overlay-border-rad
+    border-top-right-radius overlay-border-rad
+    clear both
+    border-bottom head-border solid main-border-color
+    width overlay-full-width - 2px
+    font-weight bold
+
+    a
+      display block
+      float right
+      margin-right 15px
+      border-bottom-left-radius 3px
+      border-bottom-right-radius 3px
+      border 1px solid #888
+      border-top 0px
+      color white
+      font-weight bold
+      text-decoration none
+      width 20px
+      text-align center
+    a + a
+      margin-right 5px
+    a#close
+      background-color red
+
+    h1
+      font-size overlay-font-size
+      color head-color
+      padding 2px 5px
+      margin 0px
+      width overlay-full-width - 10px
+
+  .content
+    height (overlay-full-height) - (head-border) - (overlay-foot-height) - (foot-border) - (overlay-titlebar-height)
+
+  footer
+    clear both
+    height overlay-foot-height
+    border-top foot-border solid main-border-color
+    width overlay-full-width - 2px
+    background-color #aaa
+    font-size 2px
+    border-bottom-left-radius overlay-border-rad
+    border-bottom-right-radius overlay-border-rad

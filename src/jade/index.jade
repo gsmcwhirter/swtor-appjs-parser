@@ -5,19 +5,19 @@ html
     link(rel="stylesheet", href="css/build.css")
     link(rel="stylesheet", href="css/style.css")
 
-  body
-    #all
+  body.main
+    .all
       header
         a#close.winctl(href="#") x
         a#minimize.winctl(href="#") _
         img#app_icon(src="icons/16.png", alt="")
         h1 SWTOR Combat Meters
-      #rightpane
+      .rightpane
         .header Menu
         nav#menu
         .header Overlays
         #overlay-selector
-      #leftpane
+      .leftpane
 
         #config
           .header Configuration
