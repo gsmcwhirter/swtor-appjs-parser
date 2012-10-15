@@ -12,6 +12,7 @@ task('build', [ 'build:component'
               , 'build:' + path.join('data', 'content', 'index.html')
               , 'build:' + path.join('data', 'content', 'overlay.html')
               , 'build:' + path.join('data', 'content', 'css', 'style.css')
+              , 'build:' + path.join('move_icons')
               ], function (){
                 console.log();
                 console.log("Done building all tasks.");
@@ -40,6 +41,9 @@ namespace('build', function (){
 
   desc('creates src/js/components directory');
   directory(path.join('src', 'js', 'components'));
+
+  desc('creates data/content/icons directory');
+  directory(path.join('data', 'content', 'icons'));
 
   desc('build component pieces');
   task('component', [path.join('data', 'content', 'js'), path.join('src', 'js', 'build'), path.join('src', 'js', 'components')], function (){
@@ -207,6 +211,16 @@ namespace('build', function (){
 
     fs.writeFileSync(path.join('data', 'content', 'overlay.html'), fn(locals));
   });
+
+  desc('copy the icons to the content folder');
+  task('move_icons', [path.join('data', 'content', 'icons')], function (){
+    console.log("Copying icon files");
+    fs.readdir(path.join('data', 'icons'), function (err, items){
+      items.forEach(function (item){
+        copy(path.join('data', 'icons', item), path.join('data', 'content', 'icons', item));
+      });
+    });
+  }, {async: true});
 
 
 });

@@ -20,9 +20,12 @@ menu.on('set', function (button, index){
   console.log('SET menu button "%s". index: %s', button.text(), index);
 
   function showPane(pane){
-    $("#leftpane>div").slideUp('fast', function (){
+    /*$("#leftpane>div").slideUp('fast', function (){
       $(pane).slideDown('slow');
-    });
+    });*/
+
+    $("#leftpane>div").hide();
+    $(pane).show();
   }
 
   switch (button.text()){
@@ -48,14 +51,28 @@ addEventListener('app-ready', function (err){
   console.log(app_overlays);
 
   $("a#close").click(function (){
+    console.log('close clicked');
     window.close();
   });
 
   $("a#minimize").click(function (){
+    console.log('minimize clicked');
     window.frame.minimize();
   });
 
-  $("header");
+  $('a.winctl')
+     .on('mouseover', function(event){
+          $(this).css('z-index', 2);}
+     )
+     .on('mouseout', function(event){
+          $(this).css('z-index', 0);}
+);
+
+
+  $("header h1, header img").on("mousedown", function (){
+    console.log('header mousedown');
+    window.frame.drag();
+  });
 
   if (!overlays_set){
     app_overlays.forEach(function (overlay){
