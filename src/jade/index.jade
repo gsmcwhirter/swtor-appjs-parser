@@ -23,8 +23,19 @@ html
           .header Configuration
           div
             form.buttonset
+              label(for="log_dir_input") Combat Log Directory
+              span(style="display: block; font-size: 10pt;")
+                | Note: this will ask you to select a file. Select any log file
+                | you wish. It will just read the directory it is in.
               input#log_dir_input(type="text", name="log_dir")
               a#log_dir_button(href="#", style="display: inline;") Browse...
+
+              label(for="group_sync_key") Group Sync Key
+              input#group_sync_key(type="text", name="group_sync_key")
+              span.enablebutton
+
+              label
+              a.savebutton(href="#", style="display: inline;") Save Settings
         #stats
           .header Combat Statistics
           div

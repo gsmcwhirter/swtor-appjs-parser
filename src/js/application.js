@@ -1,60 +1,118 @@
 var $ = require("jquery")
+  , ButtonSet = require("buttonset")
   , _overlay_queue = []
   , _opening_overlays = false
   , _pause_overlays = false
   , _dragging = false
-  ;
-
-var ButtonSet = require("buttonset")
-  , overlays = new ButtonSet("#overlay-selector", {
-      unselectable: false
-    , multiple: true
-    })
+  , overlays = {}
   , overlays_set = false
-  , menu = new ButtonSet("nav#menu", {
-      unselectable: false
-    , multiple: false
-    })
+  , menu = {}
+  , enablebutton = {}
   ;
 
-menu.add("Configuration");
-menu.add("Statistics");
+/* Helpers for opening overlays on application load */
+function openOverlay(overlay_index){
+  console.log('openOverlay');
+  _overlay_queue.push(overlay_index);
 
-menu.on('set', function (button, index){
-  console.log('SET menu button "%s". index: %s', button.text(), index);
-
-  function showPane(pane){
-    /*$("#leftpane>div").slideUp('fast', function (){
-      $(pane).slideDown('slow');
-    });*/
-
-    $(".leftpane>div").hide();
-    $(pane).show();
+  if (!_opening_overlays){
+    _opening_overlays = true;
   }
 
-  switch (button.text()){
-    case "Configuration":
-      showPane("#config");
-      break;
-    case "Statistics":
-      showPane("#stats")
-      break;
-    default:
-      menu.set(0);
+  console.log(_overlay_queue);
+}
+
+function _openOverlays(){
+  console.log('_openOverlays');
+  var ind = _overlay_queue.shift();
+  console.log(ind);
+  if (!ind && ind !== 0) {
+    _opening_overlays = false;
+    return;
   }
-});
 
-menu.on('unset', function (button, index){
-  console.log('UNSET menu button "%s". index: %s', button.text(), index);
-});
+  if (!_pause_overlays){
+    _pause_overlays = true;
+    overlays.set(ind);
+  }
 
-menu.set(0);
+  setTimeout(_openOverlays, 100);
+}
 
+/* Set up application listeners etc. */
 addEventListener('app-ready', function (err){
   console.log('app-ready triggered');
   console.log(app_overlays);
 
-  if (app_settings.winpos){
+  overlays = new ButtonSet("#overlay-selector", {
+      unselectable: false
+    , multiple: true
+    })
+  , menu = new ButtonSet("nav#menu", {
+      unselectable: false
+    , multiple: false
+    })
+  , enablebutton = new ButtonSet("#config .enablebutton", {
+      unselectable: true
+    , multiple: false
+  })
+  ;
+
+  /* Set up menu */
+  menu.add("Configuration");
+  menu.add("Statistics");
+
+  menu.on('set', function (button, index){
+    console.log('SET menu button "%s". index: %s', button.text(), index);
+
+    function showPane(pane){
+      /*$("#leftpane>div").slideUp('fast', function (){
+        $(pane).slideDown('slow');
+      });*/
+
+      $(".leftpane>div").hide();
+      $(pane).show();
+    }
+
+    switch (button.text()){
+      case "Configuration":
+        showPane("#config");
+        break;
+      case "Statistics":
+        showPane("#stats")
+        break;
+      default:
+        menu.set(0);
+    }
+  });
+
+  menu.on('unset', function (button, index){
+    console.log('UNSET menu button "%s". index: %s', button.text(), index);
+  });
+
+  menu.set(0);
+
+  /* Set up enable button */
+  enablebutton.add("Enable Sync");
+
+  enablebutton.on('set', function (button, index){
+    if (index === 0){
+      app_settings.group_sync_enabled = true;
+    }
+  });
+
+  enablebutton.on('unset', function (button, index){
+    if (index === 0){
+      app_settings.group_sync_enabled = false;
+    }
+  });
+
+  if (app_settings.group_sync_enabled){
+    enablebutton.set(0);
+  }
+
+  /* Move window to last position */
+  if (app_settings.winpos && app_settings.winpos.left !== false){
     console.log("restoring window position");
     window.frame.move(parseInt(app_settings.winpos.left || 0), parseInt(app_settings.winpos.top || 0));
   }
@@ -64,6 +122,7 @@ addEventListener('app-ready', function (err){
     window.frame.center();
   }
 
+  /* Set up window controls -- close and minimize, click-drag */
   $("a#close").click(function (){
     console.log('close clicked');
     window.close();
@@ -88,15 +147,14 @@ addEventListener('app-ready', function (err){
     window.frame.drag();
 
     console.log('saving window position');
-    app_settings.winpos = {
-      left: window.frame.left
-    ,  top: window.frame.top
-    };
+    app_settings.winpos.left = parseInt(window.frame.left);
+    app_settings.winpos.top = parseInt(window.frame.top);
 
     app_settings.save();
 
   });
 
+  /* Configure overlays menu */
   if (!overlays_set){
     app_overlays.forEach(function (overlay){
       overlays.add(overlay);
@@ -110,7 +168,9 @@ addEventListener('app-ready', function (err){
     if (!overlay_windows[button.text()]){
       overlay_windows[button.text()] = createOverlay();
 
+
       overlay_windows[button.text()].on('ready', function (){
+        overlay_windows[button.text()].overlay_name = button.text();
         configureOverlay(overlay_windows[button.text()]);
         overlay_windows[button.text()].frame.show();
 
@@ -146,7 +206,7 @@ addEventListener('app-ready', function (err){
       }
     }
 
-    app_settings.overlays[button.text()] = true;
+    (app_settings.overlays[button.text()] || {}).opened = true;
     app_settings.save();
 
 
@@ -158,18 +218,17 @@ addEventListener('app-ready', function (err){
       overlay_windows[button.text()].frame.hide();
     }
 
-    app_settings.overlays[button.text()] = false;
+    (app_settings.overlays[button.text()] || {}).opened = false;
     app_settings.save();
 
   });
 
-  /* Freezes the program */
+  /* Open previously opened overlays */
   app_overlays.forEach(function (overlay, index){
     console.log("checking overlay %s", overlay);
-    if (app_settings.overlays[overlay]){
+    if (app_settings.overlays[overlay] && app_settings.overlays[overlay].opened){
       console.log('opening');
       openOverlay(index);
-      //overlays.set(index);
     }
     else {
       console.log('not opening');
@@ -182,57 +241,77 @@ addEventListener('app-ready', function (err){
   console.log(app_settings.overlays);
   console.log(app_settings);
 
+  /* Set up directory chooser */
   var showing_dir_selector = false;
   $("a#log_dir_button").on('click', function (){
     if (showing_dir_selector) return;
+    var path = node_require('path');
 
     window.frame.openDialog({
       type: 'open'
     , title: 'Select Combat Log Directory'
     , multiSelect: false
-    , dirSelect: true
+    , dirSelect: false /* BUG: this should be true, but the directory selector doesn't work. so the following is a hack */
     }, function (err, files){
       if (err) {
         console.log(err);
         return;
       }
+      else {
+        console.log(files);
+      }
 
       showing_dir_selector = false;
       files.forEach(function (file){
         file = file.toString('utf8');
-        app_settings.log_dir = file;
+        if (file.substring(file.length - 4) === ".txt"){
+          file = path.dirname(file);
+        }
+
         $("#log_dir_input").val(file);
+        $("#log_dir_input").blur();
         console.log(file);
       });
     });
   });
 
+  var last_ldi = app_settings.log_dir
+    , last_gsk = app_settings.group_sync_key
+    ;
+
+  $("#log_dir_input, #group_sync_key").on('blur keydown keypress change', function (){
+    if ($(this).attr('id') === "log_dir_input" && $(this).val() !== last_ldi){
+      $(this).css('border-color', 'red');
+    }
+    else if ($(this).attr('id') === "group_sync_key" && $(this).val() !== last_gsk){
+      $(this).css('border-color', 'red');
+    }
+    else {
+      $(this).css('border-color', 'black');
+    }
+  });
+
+  $("#config input").on('keydown', function (e){
+    console.log(e);
+    if (e.keyCode === 27){
+      $("#config input").blur();
+    }
+  });
+
+  $("#config .savebutton").click(function (){
+    app_settings.log_dir = last_ldi = $("#log_dir_input").val();
+    app_settings.group_sync_key = last_gsk = $("#group_sync_key").val();
+    app_settings.save();
+
+    $("#log_dir_input, #group_sync_key").blur();
+  });
+
+  /* Set up the saved log_dir, if any */
+  if (app_settings.log_dir){
+    $("#log_dir_input").val(app_settings.log_dir);
+  }
+
+  /* Set up the saved group sync key, if any */
+  $("#group_sync_key").val(app_settings.group_sync_key || "");
+
 });
-
-function openOverlay(overlay_index){
-  console.log('openOverlay');
-  _overlay_queue.push(overlay_index);
-
-  if (!_opening_overlays){
-    _opening_overlays = true;
-  }
-
-  console.log(_overlay_queue);
-}
-
-function _openOverlays(){
-  console.log('_openOverlays');
-  var ind = _overlay_queue.shift();
-  console.log(ind);
-  if (!ind && ind !== 0) {
-    _opening_overlays = false;
-    return;
-  }
-
-  if (!_pause_overlays){
-    _pause_overlays = true;
-    overlays.set(ind);
-  }
-
-  setTimeout(_openOverlays, 100);
-}

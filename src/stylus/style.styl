@@ -24,8 +24,6 @@ overlay-titlebar-height = overlay-font-size + 4px
 overlay-foot-height = 12px
 overlay-border-rad = 6px
 
-
-
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-button:start:decrement { display: block; width: 5px; height: 5px; background-color: transparent; border-left: 1px solid rgba(0,0,0,.1); }
 ::-webkit-scrollbar-button:end:increment { display: block; width: 5px; height: 5px; background-color: transparent; border-left: 1px solid rgba(0,0,0,.1);}
@@ -138,8 +136,25 @@ body.main
     border-right 1px solid main-border-color
     //background-color #eee
 
-    p#test
-      padding 5px
+    #config
+      form, form.buttonset
+        display block
+        padding 2px 5px
+      input
+        border 1px solid black
+        width 70%
+        margin-right 5px
+        padding 2px 5px
+      label
+        font-weight bold
+        display block
+        margin-top 10px
+
+      span.enablebutton.buttonset
+        a
+          display inline
+          width auto
+
 
   .rightpane
     float right

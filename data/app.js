@@ -17,7 +17,9 @@ var app = module.exports = require('appjs')
     ]
   , default_settings = {
       "log_dir": ""
-    , "winpos": {}
+    , "group_sync_key": ""
+    , "group_sync_enabled": false
+    , "winpos": {left: false, top: false}
     , "overlays": {}
     }
   , overlay_windows = {}
@@ -26,7 +28,11 @@ var app = module.exports = require('appjs')
   ;
 
 overlays_available.forEach(function (overlay){
-  default_settings.overlays[overlay] = false;
+  default_settings.overlays[overlay] = {
+    opened: false
+  , left: false
+  , top: false
+  };
 });
 
 var settings = new Settings(path.resolve(path.join(__dirname, "..", "config.json")), default_settings);

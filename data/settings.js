@@ -54,8 +54,8 @@ Settings.prototype.save = function (){
   console.log(JSON.stringify(this._data));
 
   //console.log(this._data);
-  //var writeData = JSON.stringify(this._data, null, 2);
-  var writeData = JSON.stringify(this._data);
+  var writeData = JSON.stringify(this._data, null, 2);
+  //var writeData = JSON.stringify(this._data);
   //console.log(writeData);
   console.log(this._filename);
 
