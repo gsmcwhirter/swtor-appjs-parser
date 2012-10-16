@@ -1,5 +1,6 @@
 var $ = require("jquery")
   , ButtonSet = require("buttonset")
+  , logger = new (require("./logger"))()
   , _overlay_queue = []
   , _opening_overlays = false
   , _pause_overlays = false
@@ -16,22 +17,31 @@ var $ = require("jquery")
   }
   ;
 
+/* Configure logging */
+console.log(logger);
+logger.setLogLevel('debug');
+console.log(logger);
+logger.log('debug', 'test debug');
+logger.log('info', 'test info');
+logger.log('warn', 'test warn');
+logger.log('error', 'test error');
+
 /* Helpers for opening overlays on application load */
 function openOverlay(overlay_index){
-  console.log('openOverlay');
+  logger.log('debug', 'openOverlay');
   _overlay_queue.push(overlay_index);
 
   if (!_opening_overlays){
     _opening_overlays = true;
   }
 
-  console.log(_overlay_queue);
+  logger.log('debug', _overlay_queue);
 }
 
 function _openOverlays(){
-  console.log('_openOverlays');
+  logger.log('debug', '_openOverlays');
   var ind = _overlay_queue.shift();
-  console.log(ind);
+  logger.log('debug', ind);
   if (!ind && ind !== 0) {
     _opening_overlays = false;
     return;
@@ -58,8 +68,8 @@ window.getParserData = getParserData;
 
 /* Set up application listeners etc. */
 addEventListener('app-ready', function (err){
-  console.log('app-ready triggered');
-  console.log(app_overlays);
+  logger.log('debug', 'app-ready triggered');
+  logger.log('debug', app_overlays);
 
   /* require the combat log parser */
   var slp = node_require('swtor-log-parser')
@@ -86,7 +96,7 @@ addEventListener('app-ready', function (err){
   menu.add("Statistics");
 
   menu.on('set', function (button, index){
-    console.log('SET menu button "%s". index: %s', button.text(), index);
+    logger.log('debug', 'SET menu button "%s". index: %s', button.text(), index);
 
     function showPane(pane){
       /*$("#leftpane>div").slideUp('fast', function (){
@@ -110,7 +120,7 @@ addEventListener('app-ready', function (err){
   });
 
   menu.on('unset', function (button, index){
-    console.log('UNSET menu button "%s". index: %s', button.text(), index);
+    logger.log('debug', 'UNSET menu button "%s". index: %s', button.text(), index);
   });
 
   menu.set(0);
@@ -136,23 +146,23 @@ addEventListener('app-ready', function (err){
 
   /* Move window to last position */
   if (app_settings.winpos && app_settings.winpos.left !== false){
-    console.log("restoring window position");
+    logger.log('debug', "restoring window position");
     window.frame.move(parseInt(app_settings.winpos.left || 0), parseInt(app_settings.winpos.top || 0));
   }
   else {
-    console.log("no position to restore. centering.");
-    console.log(app_settings);
+    logger.log('debug', "no position to restore. centering.");
+    logger.log('debug', app_settings);
     window.frame.center();
   }
 
   /* Set up window controls -- close and minimize, click-drag */
   $("a#close").click(function (){
-    console.log('close clicked');
+    logger.log('debug', 'close clicked');
     window.close();
   });
 
   $("a#minimize").click(function (){
-    console.log('minimize clicked');
+    logger.log('debug', 'minimize clicked');
     window.frame.minimize();
   });
 
@@ -165,11 +175,11 @@ addEventListener('app-ready', function (err){
 
 
   $("header h1, header img").on("mousedown", function (){
-    console.log('header mousedown');
+    logger.log('debug', 'header mousedown');
 
     window.frame.drag();
 
-    console.log('saving window position');
+    logger.log('debug', 'saving window position');
     app_settings.winpos.left = parseInt(window.frame.left);
     app_settings.winpos.top = parseInt(window.frame.top);
 
@@ -187,7 +197,7 @@ addEventListener('app-ready', function (err){
   }
 
   overlays.on('set', function (button, index){
-    console.log('SET overlays button "%s". index: %s', button.text(), index);
+    logger.log('debug', 'SET overlays button "%s". index: %s', button.text(), index);
     if (!overlay_windows[button.text()]){
       overlay_windows[button.text()] = createOverlay();
 
@@ -204,20 +214,7 @@ addEventListener('app-ready', function (err){
         }
       });
 
-      console.log(overlay_windows[button.text()].frame);
-
-      /* doesn't work
-      overlay_windows[button.text()].frame.on('show', function (){
-        console.log('test 2');
-      });
-
-
-      overlay_windows[button.text()].on('overlay-closed', function (){
-        console.log('overlay closed');
-        overlay_windows[button.text()].frame.hide();
-        overlays.unset(index);
-      });
-      */
+      logger.log('debug', overlay_windows[button.text()].frame);
 
       overlay_windows[button.text()].on('close', function (){
         overlays.unset(index);
@@ -238,7 +235,7 @@ addEventListener('app-ready', function (err){
   });
 
   overlays.on('unset', function (button, index){
-    console.log('UNSET overlays button "%s". index: %s', button.text(), index);
+    logger.log('debug', 'UNSET overlays button "%s". index: %s', button.text(), index);
     if (overlay_windows[button.text()]){
       overlay_windows[button.text()].frame.hide();
     }
@@ -250,21 +247,21 @@ addEventListener('app-ready', function (err){
 
   /* Open previously opened overlays */
   app_overlays.forEach(function (overlay, index){
-    console.log("checking overlay %s", overlay);
+    logger.log('debug', "checking overlay %s", overlay);
     if (app_settings.overlays[overlay] && app_settings.overlays[overlay].opened){
-      console.log('opening');
+      logger.log('debug', 'opening');
       openOverlay(index);
     }
     else {
-      console.log('not opening');
+      logger.log('debug', 'not opening');
     }
   });
 
   setTimeout(_openOverlays, 1000);
 
 
-  console.log(app_settings.overlays);
-  console.log(app_settings);
+  logger.log('debug', app_settings.overlays);
+  logger.log('debug', app_settings);
 
   /* Set up directory chooser */
   var showing_dir_selector = false;
@@ -278,11 +275,11 @@ addEventListener('app-ready', function (err){
     , dirSelect: false /* BUG: this should be true, but the directory selector doesn't work. so the following is a hack */
     }, function (err, files){
       if (err) {
-        console.log(err);
+        logger.log('error', err);
         return;
       }
       else {
-        console.log(files);
+        logger.log('debug', files);
       }
 
       showing_dir_selector = false;
@@ -294,7 +291,7 @@ addEventListener('app-ready', function (err){
 
         $("#log_dir_input").val(file);
         $("#log_dir_input").blur();
-        console.log(file);
+        logger.log('debug', file);
       });
     });
   });
@@ -305,9 +302,9 @@ addEventListener('app-ready', function (err){
 
   function setConfigLasts(){
     var restart = false;
-    console.log("setConfigLasts");
-    console.log(last_ldi);
-    console.log(app_settings.log_dir.substring(0));
+    logger.log('debug', "setConfigLasts");
+    logger.log('debug', last_ldi);
+    logger.log('debug', app_settings.log_dir.substring(0));
     if (last_ldi !== app_settings.log_dir.substring(0)){
       restart = true;
     }
@@ -316,7 +313,7 @@ addEventListener('app-ready', function (err){
     last_gsk = app_settings.group_sync_key.substring(0);
 
     if (restart){
-      console.log("calling restartParser");
+      logger.log('debug', "calling restartParser");
       restartParser();
     }
   }
@@ -336,7 +333,7 @@ addEventListener('app-ready', function (err){
   });
 
   $("#config input").on('keydown', function (e){
-    console.log(e);
+    logger.log('debug', e);
     if (e.keyCode === 27){
       $("#config input").blur();
     }
@@ -361,30 +358,30 @@ addEventListener('app-ready', function (err){
   /* Start the parser */
   function restartParser(){
     if (parser && typeof parser.stop === "function"){
-      console.log("stopping parser")
+      logger.log('debug', "stopping parser")
       parser.on('stop', function (){
-        console.log("parser stopped. restarting");
-        //parser = null;
-        //restartParser();
+        logger.log('debug', "parser stopped. restarting");
+        parser = null;
+        restartParser();
       })
       parser.stop();
     }
     else if (fs.existsSync(app_settings.log_dir) && fs.statSync(app_settings.log_dir).isDirectory()) {
-      console.log("starting parser");
+      logger.log('debug', "starting parser");
       parser = new slp.CombatLogParser(app_settings.log_dir, true);
 
       parser.on('start', function (){
-        console.log('parser started');
-        console.log(parser);
+        logger.log('debug', 'parser started');
+        logger.log('debug', parser);
       });
 
       parser.on('error', function (err){
-        console.log("Error: " + err);
+        logger.log('debug', "Error: " + err);
       });
 
       parser.on('data', function (obj){
         if (obj){
-          console.log(obj);
+          logger.log('debug', obj);
           var identifier;
           if (obj.effect.name === "Damage"){
             if (obj.event_source.is_player || !obj.event_source.unique_id){
@@ -414,21 +411,20 @@ addEventListener('app-ready', function (err){
             parser_data.unknown_events[obj.effect.name] = (parser_data.unknown_events[obj.effect.name] || 0) + 1;
           }
 
-          console.log(parser_data.total_dmg);
-          console.log(parser_data.total_heals);
-          console.log(parser_data.unknown_events);
-          console.log();
+          logger.log('debug', parser_data.total_dmg);
+          logger.log('debug', parser_data.total_heals);
+          logger.log('debug', parser_data.unknown_events);
         }
         else {
-          console.log("data event with no data");
+          logger.log('debug', "data event with no data");
         }
       });
 
       parser.start();
     }
     else {
-      //parser = null;
-      console.log("combat log directory doesn't exist or isn't a directory");
+      parser = null;
+      logger.log('debug', "combat log directory doesn't exist or isn't a directory");
     }
   }
 });

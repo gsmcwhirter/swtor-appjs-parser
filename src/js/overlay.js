@@ -1,31 +1,16 @@
-var $ = require('jquery');
+var $ = require('jquery')
+  , logger = new (require("./logger"))()
+  ;
 
 /* Set up window listeners etc. */
 addEventListener('app-ready', function (err){
-  console.log('app-ready triggered');
-
-  /* Set up window controls */
-  /* Can't get close to work right now, so close from the main interface instead
-  $("a#close").click(function (){
-    console.log('close clicked');
-    window.trigger('overlay-closed');
-  });
-
-  $('a.winctl')
-    .on('mouseover', function(event){
-      $(this).css('z-index', 2);
-    })
-    .on('mouseout', function(event){
-      $(this).css('z-index', 0);
-    });
-  */
-
+  logger.log('debug', 'app-ready triggered');
 
   $("header h1, header img").on("mousedown", function (){
-    console.log('header mousedown');
+    logger.log('debug', 'header mousedown');
     window.frame.drag();
 
-    console.log('saving overlay position');
+    logger.log('debug', 'saving overlay position');
     (main_window.app_settings.overlays[overlay_name] || {}).left = parseInt(window.frame.left);
     (main_window.app_settings.overlays[overlay_name] || {}).top = parseInt(window.frame.top);
 
@@ -37,11 +22,11 @@ addEventListener('app-ready', function (err){
 
   /* Move overlay to saved position */
   if (main_window.app_settings.overlays[overlay_name] && main_window.app_settings.overlays[overlay_name].left !== false){
-    console.log("restoring overlay position");
+    logger.log('debug', "restoring overlay position");
     window.frame.move(parseInt(main_window.app_settings.overlays[overlay_name].left || 0), parseInt(main_window.app_settings.overlays[overlay_name].top || 0));
   }
   else {
-    console.log("no position to restore. leaving at top left corner.");
+    logger.log('debug', "no position to restore. leaving at top left corner.");
   }
 
   /* Set overlay opacity */
@@ -49,7 +34,7 @@ addEventListener('app-ready', function (err){
 
   /* refresh data on an interval */
   function updateParserData(){
-    console.log("updateParserData tick from " + overlay_name);
+    logger.log('debug', "updateParserData tick from " + overlay_name);
     var data = getParserData();
 
     if (data){
@@ -75,8 +60,8 @@ addEventListener('app-ready', function (err){
             }
         }
       } catch (err) {
-        console.log(err);
-        console.log(data);
+        logger.log('error', err);
+        logger.log('debug', data);
       }
 
     }

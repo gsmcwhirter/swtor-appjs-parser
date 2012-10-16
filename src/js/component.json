@@ -9,11 +9,11 @@
   , "visionmedia/page.js": "*"
   , "component/jquery": "*"
   , "retrofox/buttonset": "*"
-  , "component/jquery": "*"
   },
   "development": {},
   "scripts": [
     "application.js"
   , "overlay.js"
+  , "logger.js"
   ]
 }
