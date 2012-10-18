@@ -1,9 +1,27 @@
 var $ = require('jquery')
-  , logger = new (require("./logger"))()
+  , logger = null
   ;
 
+var window_titles = {
+  "Damage Done": "Damage"
+, "Damage Done per Second": "DPS"
+, "Damage Taken": "Damage Taken"
+, "Damage Taken per Second": "DTPS"
+, "Healing Done": "Healing"
+, "Healing Done per Second": "HPS"
+, "Healing Received": "Heals Taken"
+, "Healing Received per Second": "HTPS"
+, "Threat": "Threat"
+, "Threat per Second": "TPS"
+};
+
 /* Set up window listeners etc. */
-addEventListener('app-ready', function (err){
+addEventListener('app-ready', function (event){
+  logger = new (require("./logger"))("overlay.js#" + overlay_name)
+    ;
+
+  logger.setLogLevel('debug');
+
   logger.log('debug', 'app-ready triggered');
 
   $("header h1, header img").on("mousedown", function (){
@@ -18,7 +36,7 @@ addEventListener('app-ready', function (err){
   });
 
   /* Set title of the overlay */
-  $("header h1").text(overlay_name);
+  $("header h1").text(window_titles[overlay_name] || overlay_name);
 
   /* Move overlay to saved position */
   if (main_window.app_settings.overlays[overlay_name] && main_window.app_settings.overlays[overlay_name].left !== false){
@@ -29,45 +47,38 @@ addEventListener('app-ready', function (err){
     logger.log('debug', "no position to restore. leaving at top left corner.");
   }
 
-  /* Set overlay opacity */
-  window.frame.opacity = 0.75;
-
   /* refresh data on an interval */
-  function updateParserData(){
-    logger.log('debug', "updateParserData tick from " + overlay_name);
-    var data = getParserData();
 
-    if (data){
+  var _intid = setInterval(function (){
+    logger.log('debug', 'updateParserData wrapper tick');
+    var timers = updateParserData($(".content ol"), overlay_name);
 
-      try{
-        switch(overlay_name){
-          case "Damage Done":
-            $(".content ol").empty();
-            for (var entity in data.total_dmg){
-              $(".content ol").append("<li>" + entity + ": " + data.total_dmg[entity] + "</li>");
-            }
-            break;
-          case "Healing Done":
-            $(".content ol").empty();
-            for (var entity in data.total_heals){
-              $(".content ol").append("<li>" + entity + ": " + data.total_heals[entity] + "</li>");
-            }
-            break;
-          default:
-            $(".content ol").empty();
-            for (var entity in data.unknown_events){
-              $(".content ol").append("<li>" + entity + ": " + data.unknown_events[entity] + "</li>");
-            }
-        }
-      } catch (err) {
-        logger.log('error', err);
-        logger.log('debug', data);
-      }
+    if (timers){
+      var start_time = timers[0]
+        , end_time = timers[1]
+        ;
 
+      var mins = Math.floor((end_time - start_time) / 60 / 1000) + ''
+        , secs = (Math.round((end_time - start_time) / 1000) % 60) + ''
+        ;
+      $("header .timer").text(mins + ":" + (secs.length === 1 ? "0" : "") + secs);
     }
+  }, 2000);
+
+  window.stopUpdates = function (){
+    clearInterval(_intid);
   }
 
-  setInterval(updateParserData, 2000);
 });
 
+addEventListener('enable-file-logging', function (){
+  if (logger !== null){
+    logger.enableFileLog();
+  }
+});
 
+addEventListener('disable-file-logging', function (){
+  if (logger !== null){
+    logger.disableFileLog();
+  }
+});

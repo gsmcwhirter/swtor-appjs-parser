@@ -9,7 +9,7 @@ var app = module.exports = require('appjs')
     , "Damage Taken per Second"
     , "Healing Done"
     , "Healing Done per Second"
-    , "Healing Done per Resource"
+    //, "Healing Done per Resource"
     , "Healing Received"
     , "Healing Received per Second"
     , "Threat"
@@ -19,6 +19,8 @@ var app = module.exports = require('appjs')
       "log_dir": ""
     , "group_sync_key": ""
     , "group_sync_enabled": false
+    , "overlay_opacity": 0.75
+    , "logging_enabled": false
     , "winpos": {left: false, top: false}
     , "overlays": {}
     }
@@ -70,6 +72,14 @@ function Command_Option_J(e){ return e.keyCode === 74 && e.metaKey && e.altKey }
 
 function configureWindow(win){
   win.main_window = window;
+  win.node_require = require;
+  win.node_process = process;
+  win.node_module = module;
+  win.app_settings = settings;
+  win.app_overlays = overlays_available;
+  win.createOverlay = createOverlay;
+  win.configureOverlay = configureWindow;
+  win.overlay_windows = overlay_windows;
 
   win.addEventListener('keydown', function(e){
     if (F12(e) || Command_Option_J(e)) {
@@ -94,14 +104,6 @@ window.on('create', function(){
 window.on('ready', function(){
   console.log("Window Ready");
   window.frame.show();
-  window.node_require = require;
-  window.node_process = process;
-  window.node_module = module;
-  window.app_settings = settings;
-  window.app_overlays = overlays_available;
-  window.createOverlay = createOverlay;
-  window.configureOverlay = configureWindow;
-  window.overlay_windows = overlay_windows;
 
   var consoleStream = new ConsoleStream(window.console)
     , desc = { configurable: true,

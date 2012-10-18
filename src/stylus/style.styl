@@ -122,6 +122,7 @@ body.main
 
   .leftpane, .rightpane
     height (full-height) - (head-border) - (foot-height) - (foot-border) - (titlebar-height)
+    overflow hidden
 
     .header
       background-color header-bg-color
@@ -154,6 +155,48 @@ body.main
         a
           display inline
           width auto
+
+    #stats
+      .left_stats, .right_stats, .mid_stats
+        float left
+        width ((left-width - 6px) / 3)
+
+      .left_stats
+        margin-left 5px
+
+        .content
+          height (full-height) - (head-border) - (foot-height) - (foot-border) - (titlebar-height) - 80px
+
+      .right_stats, .mid_stats
+        .content
+          height (full-height) - (head-border) - (foot-height) - (foot-border) - (titlebar-height) - 56px
+
+          h2
+            margin 0
+            padding 4px 5px
+            font-size 16px
+            height 16px
+            font-weight bold
+
+      select
+        height 24px
+        padding 2px 5px
+        width 95%
+
+      .main_selector
+        margin 10px auto
+        padding 0 5px
+
+      label
+        font-weight bold
+
+      select#encounter_selector
+        width auto
+
+      .main_selector
+        label
+        height 42px
+
 
 
   .rightpane
@@ -206,8 +249,10 @@ body.overlay
       margin 0px
       width overlay-full-width - 10px
 
-  .content
-    height (overlay-full-height) - (head-border) - (overlay-foot-height) - (foot-border) - (overlay-titlebar-height)
+    .timer
+      font-size 12px
+      float right
+      margin-right 10px
 
   footer
     clear both
@@ -218,3 +263,75 @@ body.overlay
     font-size 2px
     border-bottom-left-radius overlay-border-rad
     border-bottom-right-radius overlay-border-rad
+
+  .content
+    height (overlay-full-height) - (head-border) - (overlay-foot-height) - (foot-border) - (overlay-titlebar-height)
+
+body.overlay, #stats
+  .content
+    overflow scroll
+
+    ol
+      list-style-type none
+      margin 0
+      padding 0
+
+      li
+        font-size 14px
+        font-family Helvetica, Arial, sans-serif
+        font-weight 500
+        display block
+        position relative
+
+        span.color-bar
+          position absolute
+          top 0
+          left 0
+          z-index 2
+          display block
+
+        span.color-bar.color-1
+          background-color orange
+          color orange
+
+        span.color-bar.color-2
+          background-color orange
+          color orange
+
+        span.color-bar.color-3
+          background-color orange
+          color orange
+
+        span.color-bar.color-4
+          background-color orange
+          color orange
+
+        span.color-bar.color-5
+          background-color orange
+          color orange
+
+        span.color-bar.color-6
+          background-color orange
+          color orange
+
+        span.color-bar.color-7
+          background-color orange
+          color orange
+
+        span.color-bar.color-8
+          background-color orange
+          color orange
+
+        span.value
+          position absolute
+          top 0
+          right 5px
+          z-index 4
+          display block
+
+        span.name
+          position absolute
+          top 0
+          left 5px
+          z-index 3
+          display block

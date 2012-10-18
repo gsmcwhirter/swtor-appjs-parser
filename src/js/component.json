@@ -15,5 +15,7 @@
     "application.js"
   , "overlay.js"
   , "logger.js"
+  , "display.js"
+  , "parser.js"
   ]
 }

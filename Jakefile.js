@@ -18,9 +18,37 @@ task('build', [ 'build:component'
                 console.log("Done building all tasks.");
 });
 
+desc('create distributable folder');
+task('dist', ['build', 'wip', path.join('wip', 'data')], function (){
+  copy('app.exe', path.join('wip', 'app.exe'));
+  copy_dir('data', path.join('wip', 'data'));
+});
+
+desc('creates the wip folder');
+directory('wip');
+
+desc('creates the wip/data folder');
+directory(path.join('wip', 'data'), ['wip']);
+
 function copy(src, dest){
   console.log("Copying %s to %s", path.resolve(src), path.resolve(dest));
   fs.createReadStream(path.resolve(src)).pipe(fs.createWriteStream(path.resolve(dest)));
+}
+
+function copy_dir(src, dest){
+  if (!fs.existsSync(dest)){
+    fs.mkdirSync(dest);
+  }
+
+  fs.readdirSync(src).forEach(function (file){
+    var stat = fs.statSync(path.join(src, file));
+    if (stat.isFile()){
+      copy(path.join(src, file), path.join(dest, file));
+    }
+    else if (stat.isDirectory()){
+      copy_dir(path.join(src, file), path.join(dest, file));
+    }
+  });
 }
 
 namespace('build', function (){

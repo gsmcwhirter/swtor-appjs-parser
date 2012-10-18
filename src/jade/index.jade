@@ -34,12 +34,37 @@ html
               input#group_sync_key(type="text", name="group_sync_key")
               span.enablebutton
 
+              label(for="overlay_opacity") Overlay Opacity
+              span(style="display: block; font-size: 10pt;")
+                | Changes to overlay opacity will not apply until you restart the
+                | application (after saving the settings).
+              input#overlay_opacity(type="number", min="0", max="1", step="0.05", value="0.75")
+
+              label Application Debugging
+              #enablelogging
+
               label
               a.savebutton(href="#", style="display: inline;") Save Settings
         #stats
           .header Combat Statistics
           div
-          p#test
+            form.buttonset
+              .main_selector
+                label(for="encounter_selector") Encounters:
+                select#encounter_selector(name="encounter_selector", size="1")
+
+              .left_stats
+                select#left_selector(name="left_selector", size="1")
+                .content
+                  ol
+              .mid_stats
+                .content
+                  h2
+                  ol
+              .right_stats
+                .content
+                  h2
+                  ol
       footer
 
 

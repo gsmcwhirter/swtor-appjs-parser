@@ -1,6 +1,6 @@
 var $ = require("jquery")
   , ButtonSet = require("buttonset")
-  , logger = new (require("./logger"))()
+
   , _overlay_queue = []
   , _opening_overlays = false
   , _pause_overlays = false
@@ -8,73 +8,57 @@ var $ = require("jquery")
   , overlays = {}
   , overlays_set = false
   , menu = {}
-  , enablebutton = {}
-  , parser = null
-  , parser_data = {
-    total_dmg: {}
-  , total_heals: {}
-  , unknown_events: {}
-  }
+  , enablesync = {}
+  , enablelogging = {}
   ;
-
-/* Configure logging */
-console.log(logger);
-logger.setLogLevel('debug');
-console.log(logger);
-logger.log('debug', 'test debug');
-logger.log('info', 'test info');
-logger.log('warn', 'test warn');
-logger.log('error', 'test error');
-
-/* Helpers for opening overlays on application load */
-function openOverlay(overlay_index){
-  logger.log('debug', 'openOverlay');
-  _overlay_queue.push(overlay_index);
-
-  if (!_opening_overlays){
-    _opening_overlays = true;
-  }
-
-  logger.log('debug', _overlay_queue);
-}
-
-function _openOverlays(){
-  logger.log('debug', '_openOverlays');
-  var ind = _overlay_queue.shift();
-  logger.log('debug', ind);
-  if (!ind && ind !== 0) {
-    _opening_overlays = false;
-    return;
-  }
-
-  if (!_pause_overlays){
-    _pause_overlays = true;
-    overlays.set(ind);
-  }
-
-  setTimeout(_openOverlays, 100);
-}
-
-function getParser(){
-  return parser;
-}
-
-function getParserData(){
-  return parser_data;
-}
-
-window.getParser = getParser;
-window.getParserData = getParserData;
 
 /* Set up application listeners etc. */
 addEventListener('app-ready', function (err){
+  var logger = new (require("./logger"))("application.js")
+    , display = require('./display')
+    , parser = require('./parser')
+    ;
+
+  /* Configure logging */
+  logger.setLogLevel('info');
+
+  window.getParser = parser.getParser;
+  window.getParserData = parser.getParserData;
+
+  /* Helpers for opening overlays on application load */
+  function openOverlay(overlay_index){
+    logger.log('debug', 'openOverlay');
+    _overlay_queue.push(overlay_index);
+
+    if (!_opening_overlays){
+      _opening_overlays = true;
+    }
+
+    logger.log('debug', _overlay_queue);
+  }
+
+  function _openOverlays(){
+    logger.log('debug', '_openOverlays');
+    var ind = _overlay_queue.shift();
+    logger.log('debug', ind);
+    if (!ind && ind !== 0) {
+      _opening_overlays = false;
+      return;
+    }
+
+    if (!_pause_overlays){
+      _pause_overlays = true;
+      overlays.set(ind);
+    }
+
+    setTimeout(_openOverlays, 100);
+  }
+
   logger.log('debug', 'app-ready triggered');
   logger.log('debug', app_overlays);
 
   /* require the combat log parser */
-  var slp = node_require('swtor-log-parser')
-    , fs = node_require('fs')
-    , path = node_require('path')
+  var path = node_require('path')
     ;
 
   overlays = new ButtonSet("#overlay-selector", {
@@ -85,10 +69,14 @@ addEventListener('app-ready', function (err){
       unselectable: false
     , multiple: false
     })
-  , enablebutton = new ButtonSet("#config .enablebutton", {
+  , enablesync = new ButtonSet("#config .enablebutton", {
       unselectable: true
     , multiple: false
-  })
+    })
+  , enablelogging = new ButtonSet("#enablelogging", {
+      unselectable: true
+    , multiple: false
+    })
   ;
 
   /* Set up menu */
@@ -125,23 +113,114 @@ addEventListener('app-ready', function (err){
 
   menu.set(0);
 
-  /* Set up enable button */
-  enablebutton.add("Enable Sync");
+  /* Set up enable sync button */
+  enablesync.add("Enable Sync");
 
-  enablebutton.on('set', function (button, index){
+  enablesync.on('set', function (button, index){
     if (index === 0){
       app_settings.group_sync_enabled = true;
     }
   });
 
-  enablebutton.on('unset', function (button, index){
+  enablesync.on('unset', function (button, index){
     if (index === 0){
       app_settings.group_sync_enabled = false;
     }
   });
 
   if (app_settings.group_sync_enabled){
-    enablebutton.set(0);
+    enablesync.set(0);
+  }
+
+  /* Set up enable logging */
+  enablelogging.add("Enable Logging");
+
+  enablelogging.on('set', function (button, index){
+    if (index === 0){
+      app_settings.logging_enabled = true;
+      logger.enableFileLog();
+      parser.logger.enableFileLog();
+      display.logger.enableFileLog();
+      //triggerOverlaysEvent('enable-file-logging');
+    }
+  });
+
+  enablelogging.on('unset', function (button, index){
+    if (index === 0){
+      app_settings.logging_enabled = false;
+      logger.disableFileLog();
+      parser.logger.disableFileLog();
+      display.logger.disableFileLog();
+      //triggerOverlaysEvent('disable-file-logging');
+    }
+  });
+
+  if (app_settings.logging_enabled){
+    enablelogging.set(0);
+  }
+
+  /* Function to trigger an event on all overlays */
+  /* Broken
+  function triggerOverlaysEvent(event_name){
+    logger.log('debug', 'triggerOverlaysEvent %s', event_name)
+    for (var key in overlay_windows){
+      var win = overlay_windows[key];
+      if (win){
+        win.dispatchEvent(new win.Event(event_name));
+      }
+    }
+  }
+  */
+
+
+  function setOverlayOpacity(overlay_name, opacity){
+    logger.log('debug', 'setOverlayOpacity %s %s', overlay_name, opacity);
+    if (typeof overlay_name === "undefined"){
+      overlay_name = false;
+    }
+    else if (typeof overlay_name === "number"){
+      opacity = overlay_name;
+      overlay_name = false;
+    }
+
+    if (typeof opacity === "undefined"){
+      opacity = parseFloat(typeof app_settings.overlay_opacity === "undefined" ? 0.75 : app_settings.overlay_opacity);
+    }
+
+    logger.log('debug', 'overlay opacity being set to %s for %s', opacity, overlay_name);
+
+    if (overlay_name === false){
+      logger.log('debug', 'overlay name was false. scanning all overlays');
+      for (var key in overlay_windows){
+        try{
+          //logger.log('debug', 'recursing to set opacity on %s', key);
+          logger.log('debug', key);
+          /* TODO: Fix this so it doesn't cause the app to hang when you update more than one at a time. Until then, just have it reapply at restart.
+          if (key !== false && typeof key !== "undefined"){
+            actuallySetOpacity(key, opacity);
+          }
+          */
+        } catch (err) {
+          logger.log('error', err);
+        }
+      }
+    }
+    else {
+      actuallySetOpacity(overlay_name, opacity);
+    }
+
+    function actuallySetOpacity(_oname, _opacity){
+
+      logger.log('debug', 'actuallySetOpacity %s %s', _oname, _opacity);
+      if (overlay_windows[_oname]){
+        setTimeout(function (){
+          logger.log('debug', 'actuallySetOpacity setTimeout %s %s', _oname, _opacity);
+          overlay_windows[_oname].frame.opacity = parseFloat(_opacity);
+        }, 200);
+      }
+
+    }
+
   }
 
   /* Move window to last position */
@@ -203,10 +282,11 @@ addEventListener('app-ready', function (err){
 
 
       overlay_windows[button.text()].on('ready', function (){
-        overlay_windows[button.text()].getParser = getParser;
-        overlay_windows[button.text()].getParserData = getParserData;
+        logger.log('info', 'opening overlay %s', button.text());
+        overlay_windows[button.text()].updateParserData = display.updateParserData;
         overlay_windows[button.text()].overlay_name = button.text();
         configureOverlay(overlay_windows[button.text()]);
+        setOverlayOpacity(button.text());
         overlay_windows[button.text()].frame.show();
 
         if (_opening_overlays) {
@@ -217,7 +297,7 @@ addEventListener('app-ready', function (err){
       logger.log('debug', overlay_windows[button.text()].frame);
 
       overlay_windows[button.text()].on('close', function (){
-        overlays.unset(index);
+        logger.log('info', 'closing overlay %s', button.text());
       });
     }
     else {
@@ -298,6 +378,7 @@ addEventListener('app-ready', function (err){
 
   var last_ldi = ""
     , last_gsk = ""
+    , last_opacity = 0.75
     ;
 
   function setConfigLasts(){
@@ -311,20 +392,24 @@ addEventListener('app-ready', function (err){
 
     last_ldi = app_settings.log_dir.substring(0);
     last_gsk = app_settings.group_sync_key.substring(0);
+    last_opacity = parseFloat(app_settings.overlay_opacity) * 1;
 
     if (restart){
       logger.log('debug', "calling restartParser");
-      restartParser();
+      parser.restartParser(app_settings);
     }
   }
 
   setTimeout(setConfigLasts, 100);
 
-  $("#log_dir_input, #group_sync_key").on('blur keydown keypress change', function (){
+  $("#log_dir_input, #group_sync_key, #overlay_opacity").on('blur keydown keypress change', function (){
     if ($(this).attr('id') === "log_dir_input" && $(this).val() !== last_ldi){
       $(this).css('border-color', 'red');
     }
     else if ($(this).attr('id') === "group_sync_key" && $(this).val() !== last_gsk){
+      $(this).css('border-color', 'red');
+    }
+    else if ($(this).attr('id') === "overlay_opacity" && $(this).val() != last_opacity){
       $(this).css('border-color', 'red');
     }
     else {
@@ -340,11 +425,19 @@ addEventListener('app-ready', function (err){
   });
 
   $("#config .savebutton").click(function (){
+    console.log('debug', 'setting all settings...');
     app_settings.log_dir = $("#log_dir_input").val();
     app_settings.group_sync_key = $("#group_sync_key").val();
+    app_settings.overlay_opacity = parseFloat($("#overlay_opacity").val());
+    console.log('debug', 'saving settings...');
     app_settings.save();
+    console.log('debug', 'setting default setting values...');
+    setConfigLasts();
+    console.log('debug', 'setting opacities...');
+    setOverlayOpacity();
 
-    $("#log_dir_input, #group_sync_key").blur();
+    $("#log_dir_input, #group_sync_key, #overlay_opacity").blur();
+    parser.restartParser(app_settings);
   });
 
   /* Set up the saved log_dir, if any */
@@ -355,76 +448,49 @@ addEventListener('app-ready', function (err){
   /* Set up the saved group sync key, if any */
   $("#group_sync_key").val(app_settings.group_sync_key || "");
 
-  /* Start the parser */
-  function restartParser(){
-    if (parser && typeof parser.stop === "function"){
-      logger.log('debug', "stopping parser")
-      parser.on('stop', function (){
-        logger.log('debug', "parser stopped. restarting");
-        parser = null;
-        restartParser();
-      })
-      parser.stop();
+  /* Set up the saved opacity, if any */
+  $("#overlay_opacity").val(typeof app_settings.overlay_opacity === "undefined" ? 0.75 : app_settings.overlay_opacity);
+
+  /* Set up stats selectors */
+  ["#stats select#left_selector", "#stats select#mid_selector", "#stats select#right_selector"].forEach(function (selector){
+    $(selector).empty();
+    app_overlays.forEach(function (overlay){
+      $(selector).append("<option value='" + overlay + "'>" + overlay + "</option>");
+    });
+  });
+
+  var statistics_focus = null;
+
+  function updateEncounterStatistics(){
+    logger.log('debug', 'updateEncounterStatistics tick');
+    var parser_data = parser.getParserData() || {};
+    (parser_data.encounters || []).forEach(function (encounter, index){
+      logger.log('debug', encounter);
+      var opt = $("select#encounter_selector option[value=" + index + "]");
+      logger.log('debug', opt);
+      if (opt.length){
+        opt.text(display.getEncounterName(encounter));
+      }
+      else {
+        $("select#encounter_selector").append("<option value='" + index + "'></option>");
+      }
+    });
+
+    var encounter_index = $("select#encounter_selector").val() || false;
+    if (encounter_index === false){
+      encounter_index = (parser_data.encounters || []).length - 1;
     }
-    else if (fs.existsSync(app_settings.log_dir) && fs.statSync(app_settings.log_dir).isDirectory()) {
-      logger.log('debug', "starting parser");
-      parser = new slp.CombatLogParser(app_settings.log_dir, true);
 
-      parser.on('start', function (){
-        logger.log('debug', 'parser started');
-        logger.log('debug', parser);
+    if (encounter_index !== -1){
+      display.updateParserData($("#stats .left_stats .content ol"), $("select#left_selector").val(), encounter_index, function (focus_li){
+        statistics_focus = $(focus_li).find("span.name").text();
       });
-
-      parser.on('error', function (err){
-        logger.log('debug', "Error: " + err);
-      });
-
-      parser.on('data', function (obj){
-        if (obj){
-          logger.log('debug', obj);
-          var identifier;
-          if (obj.effect.name === "Damage"){
-            if (obj.event_source.is_player || !obj.event_source.unique_id){
-              identifier = obj.event_source.name;
-            }
-            else {
-              identifier = obj.event_source.name + ":" + obj.event_source.unique_id;
-            }
-
-            if (!parser_data.total_dmg[identifier]) parser_data.total_dmg[identifier] = 0;
-
-            parser_data.total_dmg[identifier] += obj.effect_value.amt;
-          }
-          else if (obj.effect.name === "Heal"){
-            if (obj.event_source.is_player || !obj.event_source.unique_id){
-              identifier = obj.event_source.name;
-            }
-            else {
-              identifier = obj.event_source.name + ":" + obj.event_source.unique_id;
-            }
-
-            if (!parser_data.total_heals[identifier]) parser_data.total_heals[identifier] = 0;
-
-            parser_data.total_heals[identifier] += obj.effect_value.amt;
-          }
-          else {
-            parser_data.unknown_events[obj.effect.name] = (parser_data.unknown_events[obj.effect.name] || 0) + 1;
-          }
-
-          logger.log('debug', parser_data.total_dmg);
-          logger.log('debug', parser_data.total_heals);
-          logger.log('debug', parser_data.unknown_events);
-        }
-        else {
-          logger.log('debug', "data event with no data");
-        }
-      });
-
-      parser.start();
-    }
-    else {
-      parser = null;
-      logger.log('debug', "combat log directory doesn't exist or isn't a directory");
+      display.updateDetailedData1($("#stats .mid_stats .content"), $("select#left_selector").val(), encounter_index, statistics_focus);
+      display.updateDetailedData2($("#stats .right_stats .content"), $("select#left_selector").val(), encounter_index, statistics_focus);
     }
   }
+
+  setInterval(updateEncounterStatistics, 2000);
+
+
 });

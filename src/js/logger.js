@@ -1,5 +1,12 @@
-function Logger(){
+var fs = null
+  , util = null
+  ;
+
+function Logger(source_file, output_file){
   this._log_level = Logger.LOG_INFO;
+  this._outfile = output_file !== false ? output_file || "debug.log" : false;
+  this._sourcefile = source_file || "unknown";
+  this._log_to_file = false;
 }
 
 Logger.LOG_DEBUG = 1;
@@ -22,6 +29,21 @@ Logger.prototype.setLogLevel = function (level){
   this._log_level = level;
 }
 
+Logger.prototype.enableFileLog = function (){
+  this._log_to_file = true;
+  if (fs === null){
+    fs = node_require('fs');
+  }
+
+  if (util === null){
+    util = node_require('util');
+  }
+}
+
+Logger.prototype.disableFileLog = function (){
+  this._log_to_file = false;
+}
+
 Logger.prototype.log = function (level, msg){
   var args = [];
 
@@ -40,6 +62,14 @@ Logger.prototype.log = function (level, msg){
       args[0] = "log " + level + ": " + args[0];
     }
     console.log.apply(console, args);
+
+    if (this._outfile !== false && this._log_to_file){
+      try{
+        fs.appendFileSync(this._outfile, this._sourcefile + util.format("@%s: ", (new Date()).toISOString()) + util.format.apply(util.format, args) + "\n", 'utf8');
+      } catch (err) {
+        this._outfile = false;
+      }
+    }
   }
 }
 
