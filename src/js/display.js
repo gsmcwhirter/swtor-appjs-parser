@@ -1,13 +1,13 @@
 var logger = new (require('./logger'))("display.js")
   , detail_headers = {
-    "Damage Done": ["Skills", "Targets"]
-  , "Damage Done per Second": ["Skills", "Targets"]
-  , "Damage Taken": ["Skills", "Sources"]
-  , "Damage Taken per Second": ["Skills", "Sources"]
-  , "Healing Done": ["Skills", "Targets"]
-  , "Healing Done per Second": ["Skills", "Targets"]
-  , "Healing Received": ["Skills", "Sources"]
-  , "Healing Received per Second": ["Skills", "Sources"]
+    "Damage Done": ["Abilities", "Targets"]
+  , "Damage Done per Second": ["Abilities", "Targets"]
+  , "Damage Taken": ["Abilities", "Sources"]
+  , "Damage Taken per Second": ["Abilities", "Sources"]
+  , "Healing Done": ["Abilities", "Targets"]
+  , "Healing Done per Second": ["Abilities", "Targets"]
+  , "Healing Received": ["Abilities", "Sources"]
+  , "Healing Received per Second": ["Abilities", "Sources"]
   , "Threat": ["Skills", "Targets"]
   , "Threat per Second": ["Skills", "Targets"]
   }
@@ -19,6 +19,7 @@ module.exports = {
   getEncounterName: getEncounterName
 , dataToArray: dataToArray
 , displayBarData: displayBarData
+, displayDetailData: displayDetailData
 , updateParserData: updateParserData
 , updateDetailedData1: updateDetailedData1
 , updateDetailedData2: updateDetailedData2
@@ -76,6 +77,67 @@ function displayBarData(data){
     ret += "</li>";
   });
 
+  return ret;
+}
+
+function displayDetailData(data){
+  var max = 0;
+  var ret = '';
+  
+  if (typeof a[1].damage_done !== "undefined"){
+    data.sort(function (a, b){
+        if (b[1].damage_done > a[1].damage_done){
+          return 1;
+        }
+        else if (b[1].damage_done == a[1].damage_done){
+          return 0;
+        }
+        else {
+          return -1;
+        }
+    });
+    
+    if (data[0]){
+      max = data[0][1].damage_done;
+    }
+    
+    data.forEach(function (row, index){
+      ret += "<li>.";
+      ret += "<span class='value'>" + row[1].damage_done + "</span>";
+      ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1] / max * 100)) + "%;'>.</span>";
+      ret += "<span class='name'>" + row[0] + "</span>";
+      ret += "</li>";
+    });
+  }
+  else if (typeof a[1].healing_done !== "undefined"){
+    data.sort(function (a, b){
+      if (b[1].healing_done > a[1].healing_done){
+        return 1;
+      }
+      else if (b[1].healing_done == a[1].healing_done){
+        return 0;
+      }
+      else {
+        return -1;
+      }
+    });
+    
+    if (data[0]){
+      max = data[0][1].healing_done;
+    }
+    
+    data.forEach(function (row, index){
+      ret += "<li>.";
+      ret += "<span class='value'>" + row[1].healing_done + "</span>";
+      ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1] / max * 100)) + "%;'>.</span>";
+      ret += "<span class='name'>" + row[0] + "</span>";
+      ret += "</li>";
+    });
+  }
+  else {
+    logger.log('error', 'do not recognize data type');
+  }
+  
   return ret;
 }
 
@@ -188,6 +250,29 @@ function updateDetailedData1(target, overlay_name, encounter_index, focus_target
     }
     else {
       target.find('h2').text(((detail_headers[overlay_name] || [])[0] || "") + ": " + focus_target);
+      
+      switch (overlay_name){
+        case "Damage Done":
+        case "Damage Done per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.damage_done_details[focus_target].abilities)));
+          break;
+        case "Damage Taken":
+        case "Damage Taken per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.damage_taken_details[focus_target].abilities)));
+          break;
+        case "Healing Done":
+        case "Healing Done per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.healing_done_details[focus_target].abilities)));
+          break;
+        case "Healing Received":
+        case "Healing Received per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.healing_taken_details[focus_target].abilities)));
+          break;
+        case "Threat":
+        case "Threat per Second":
+        default:
+          target.append("<li>Not implemented =(</li>");
+      }
     }
 
   }
@@ -205,6 +290,29 @@ function updateDetailedData2(target, overlay_name, encounter_index, focus_target
     }
     else {
       target.find('h2').text(((detail_headers[overlay_name] || [])[1] || "") + ": " + focus_target);
+      
+      switch (overlay_name){
+        case "Damage Done":
+        case "Damage Done per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.damage_done_details[focus_target].targets)));
+          break;
+        case "Damage Taken":
+        case "Damage Taken per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.damage_taken_details[focus_target].sources)));
+          break;
+        case "Healing Done":
+        case "Healing Done per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.healing_done_details[focus_target].targets)));
+          break;
+        case "Healing Received":
+        case "Healing Received per Second":
+          target.html(displayDetailData(dataToArray(curr_encounter.healing_taken_details[focus_target].sources)));
+          break;
+        case "Threat":
+        case "Threat per Second":
+        default:
+          target.append("<li>Not implemented =(</li>");
+      }
     }
   }
 }
