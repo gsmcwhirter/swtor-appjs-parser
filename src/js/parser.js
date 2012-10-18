@@ -86,7 +86,6 @@ function restartParser(app_settings){
             , healing_done_details: {}
             , healing_taken: {}
             , healing_taken_details: {}
-            , damage_targets: {}
 
             , threat: {}
             , threat_details: {}
@@ -134,28 +133,183 @@ function restartParser(app_settings){
           if (obj.effect.name === "Damage"){
             if (obj.event_source.is_player){
               curr_encounter.damage_done[source_identifier] = (curr_encounter.damage_done[source_identifier] || 0) + obj.effect_value.amt;
-              curr_encounter.threat[source_identifier] = (curr_encounter.threat[source_identifier] || 0) + (obj.threat || 0);
-
-              curr_encounter.damage_targets[target_identifier] = (curr_encounter.damage_targets[target_identifier] || 0) + obj.effect_value.amt;
+              
+              if (!curr_encounter.damage_done_details[source_identifier]){
+                curr_encounter.damage_done_details[source_identifier] = {
+                  abilities: {}
+                , targets: {}
+                };
+              }
+              
+              if (!curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name]){
+                curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name] = {
+                  damage_done: 0
+                , hits: 0
+                , misses: 0
+                , dodges: 0
+                , absorbs: 0
+                , absorb_amt: 0
+                , crits: 0
+                }
+              }
+              
+              if (!curr_encounter.damage_done_details[source_identifier].targets[target_identifier]){
+                curr_encounter.damage_done_details[source_identifier].targets[target_identifier] = {
+                  damage_done: 0
+                , hits: 0
+                , misses: 0
+                , dodges: 0
+                , absorbs: 0
+                , absorb_amt: 0
+                , crits: 0
+                }
+              }
+              
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].damage_done += obj.effect_value.amt;
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].hits += 1;
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].absorbs += obj.effect_value.absorb_amt === 0 ? 0 : 1;
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].absorb_amt += obj.effect_value.absorb_amt;
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].misses += obj.effect_value.type === "-miss" ? 1 : 0;
+              curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
+              
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].damage_done += obj.effect_value.amt;
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].hits += 1;
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].absorbs += obj.effect_value.absorb_amt === 0 ? 0 : 1;
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].absorb_amt += obj.effect_value.absorb_amt;
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].misses += obj.effect_value.type === "-miss" ? 1 : 0;
+              curr_encounter.damage_done_details[source_identifier].targets[target_identifier].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
             }
 
             if (obj.event_target.is_player){
               curr_encounter.damage_taken[target_identifier] = (curr_encounter.damage_taken[target_identifier] || 0) + obj.effect_value.amt;
+              
+              if (!curr_encounter.damage_taken_details[target_identifier]){
+                curr_encounter.damage_taken_details[target_identifier] = {
+                  abilities: {}
+                , sources: {}
+                };
+              }
+              
+              if (!curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name]){
+                curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name] = {
+                  damage_done: 0
+                , hits: 0
+                , misses: 0
+                , dodges: 0
+                , absorbs: 0
+                , absorb_amt: 0
+                , crits: 0
+                }
+              }
+              
+              if (!curr_encounter.damage_taken_details[target_identifier].sources[source_identifier]){
+                curr_encounter.damage_taken_details[target_identifier].sources[source_identifier] = {
+                  damage_done: 0
+                , hits: 0
+                , misses: 0
+                , dodges: 0
+                , absorbs: 0
+                , absorb_amt: 0
+                , crits: 0
+                }
+              }
+              
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].damage_done += obj.effect_value.amt;
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].hits += 1;
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].absorbs += obj.effect_value.absorb_amt === 0 ? 0 : 1;
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].absorb_amt += obj.effect_value.absorb_amt;
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].misses += obj.effect_value.type === "-miss" ? 1 : 0;
+              curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
+              
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].damage_done += obj.effect_value.amt;
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].hits += 1;
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].absorbs += obj.effect_value.absorb_amt === 0 ? 0 : 1;
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].absorb_amt += obj.effect_value.absorb_amt;
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].misses += obj.effect_value.type === "-miss" ? 1 : 0;
+              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
             }
 
           }
           else if (obj.effect.name === "Heal"){
             if (obj.event_source.is_player){
               curr_encounter.healing_done[source_identifier] = (curr_encounter.healing_done[source_identifier] || 0) + obj.effect_value.amt;
-              curr_encounter.threat[source_identifier] = (curr_encounter.threat[source_identifier] || 0) + (obj.threat || 0);
+              
+              if (!curr_encounter.healing_done_details[source_identifier]){
+                curr_encounter.healing_done_details[source_identifier] = {
+                  abilities: {}
+                , targets: {}
+                };
+              }
+              
+              if (!curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name]){
+                curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name] = {
+                  healing_done: 0
+                , heals: 0
+                , crits: 0
+                }
+              }
+              
+              if (!curr_encounter.healing_done_details[source_identifier].targets[target_identifier]){
+                curr_encounter.healing_done_details[source_identifier].targets[target_identifier] = {
+                  healing_done: 0
+                , heals: 0
+                , crits: 0
+                }
+              }
+              
+              curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name].healing_done += obj.effect_value.amt;
+              curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name].heals += 1;
+              curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
+              
+              curr_encounter.healing_done_details[source_identifier].targets[target_identifier].healing_done += obj.effect_value.amt;
+              curr_encounter.healing_done_details[source_identifier].targets[target_identifier].heals += 1;
+              curr_encounter.healing_done_details[source_identifier].targets[target_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
             }
 
             if (obj.event_target.is_player){
               curr_encounter.healing_taken[target_identifier] = (curr_encounter.healing_taken[target_identifier] || 0) + obj.effect_value.amt;
+              
+              if (!curr_encounter.healing_taken_details[target_identifier]){
+                curr_encounter.healing_taken_details[target_identifier] = {
+                  abilities: {}
+                , sources: {}
+                };
+              }
+              
+              if (!curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name]){
+                curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name] = {
+                  healing_done: 0
+                , heals: 0
+                , crits: 0
+                }
+              }
+              
+              if (!curr_encounter.healing_taken_details[target_identifier].sources[source_identifier]){
+                curr_encounter.healing_taken_details[target_identifier].sources[source_identifier] = {
+                  healing_done: 0
+                , heals: 0
+                , crits: 0
+                }
+              }
+              
+              curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name].healing_done += obj.effect_value.amt;
+              curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name].heals += 1;
+              curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
+              
+              curr_encounter.healing_taken_details[target_identifier].sources[source_identifier].healing_done += obj.effect_value.amt;
+              curr_encounter.healing_taken_details[target_identifier].sources[source_identifier].heals += 1;
+              curr_encounter.healing_taken_details[target_identifier].sources[source_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
             }
           }
-          else if (obj.threat && obj.event_source.is_player) {
+          
+          if (obj.threat && obj.event_source.is_player) {
             curr_encounter.threat[source_identifier] = (curr_encounter.threat[source_identifier] || 0) + (obj.threat || 0);
+            
+            //TODO: threat details
           }
 
           logger.log('debug', curr_encounter);
