@@ -86,10 +86,11 @@ function restartParser(app_settings){
             , healing_done_details: {}
             , healing_taken: {}
             , healing_taken_details: {}
-
             , threat: {}
-            , threat_details: {}
-            , raw_events: []
+            , threat_details: {
+              targets: {}
+            , sources: {}
+            }
             , temp_start_time: (new Date()).getTime()
             , start_time: obj.timestamp
             , end_time: null
@@ -124,11 +125,9 @@ function restartParser(app_settings){
           }
 
           if ((curr_encounter.end_time && obj.timestamp > curr_encounter.end_time) || !curr_encounter.start_time || obj.timestamp < curr_encounter.start_time){
-            logger.log('error', 'damage packet etc unexpected');
+            logger.log('error', 'packet unexpected: %s', obj.effect.name);
             return;
           }
-
-          curr_encounter.raw_events.push(obj);
 
           if (obj.effect.name === "Damage"){
             if (obj.event_source.is_player){
@@ -307,9 +306,19 @@ function restartParser(app_settings){
           }
           
           if (obj.threat && obj.event_source.is_player) {
+            //TODO: more interesting threat details
             curr_encounter.threat[source_identifier] = (curr_encounter.threat[source_identifier] || 0) + (obj.threat || 0);
             
-            //TODO: threat details
+            if (!curr_encounter.threat_details.sources[source_identifier]){
+              curr_encounter.threat_details.sources[source_identifier] = {};
+            }
+            
+            if (!curr_encounter.threat_details.targets[target_identifier]){
+              curr_encounter.threat_details.targets[target_identifier] = {};
+            }
+            
+            curr_encounter.threat_details.sources[source_identifier][target_identifier] = (curr_encounter.threat_details.sources[source_identifier][target_identifier] || 0) + (obj.threat || 0);
+            curr_encounter.threat_details.targets[target_identifier][source_identifier] = (curr_encounter.threat_details.targets[target_identifier][source_identifier] || 0) + (obj.threat || 0);
           }
 
           logger.log('debug', curr_encounter);
