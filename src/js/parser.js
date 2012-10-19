@@ -91,6 +91,7 @@ function restartParser(app_settings){
               targets: {}
             , sources: {}
             }
+            , damage_targets: {} //used to find the protagonist of the encounter
             , temp_start_time: (new Date()).getTime()
             , start_time: obj.timestamp
             , end_time: null
@@ -105,7 +106,7 @@ function restartParser(app_settings){
         }
 
         /* Check for Ending Encounter */
-        else if (obj.effect.name === "ExitCombat"){
+        else if (obj.effect.name === "ExitCombat" || (obj.effect.name === "Death" && obj.event_target.is_player)){
           logger.log('info', 'ending current encounter');
 
           if (parser_data.encounters[parser_data.encounters.length - 1]){
@@ -132,14 +133,14 @@ function restartParser(app_settings){
           if (obj.effect.name === "Damage"){
             if (obj.event_source.is_player){
               curr_encounter.damage_done[source_identifier] = (curr_encounter.damage_done[source_identifier] || 0) + obj.effect_value.amt;
-              
+
               if (!curr_encounter.damage_done_details[source_identifier]){
                 curr_encounter.damage_done_details[source_identifier] = {
                   abilities: {}
                 , targets: {}
                 };
               }
-              
+
               if (!curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name]){
                 curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name] = {
                   damage_done: 0
@@ -151,7 +152,7 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               if (!curr_encounter.damage_done_details[source_identifier].targets[target_identifier]){
                 curr_encounter.damage_done_details[source_identifier].targets[target_identifier] = {
                   damage_done: 0
@@ -163,7 +164,7 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].damage_done += obj.effect_value.amt;
               curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].hits += 1;
               curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
@@ -171,7 +172,7 @@ function restartParser(app_settings){
               curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].absorb_amt += obj.effect_value.absorb_amt;
               curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].misses += obj.effect_value.type === "-miss" ? 1 : 0;
               curr_encounter.damage_done_details[source_identifier].abilities[obj.ability.name].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
-              
+
               curr_encounter.damage_done_details[source_identifier].targets[target_identifier].damage_done += obj.effect_value.amt;
               curr_encounter.damage_done_details[source_identifier].targets[target_identifier].hits += 1;
               curr_encounter.damage_done_details[source_identifier].targets[target_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
@@ -183,14 +184,14 @@ function restartParser(app_settings){
 
             if (obj.event_target.is_player){
               curr_encounter.damage_taken[target_identifier] = (curr_encounter.damage_taken[target_identifier] || 0) + obj.effect_value.amt;
-              
+
               if (!curr_encounter.damage_taken_details[target_identifier]){
                 curr_encounter.damage_taken_details[target_identifier] = {
                   abilities: {}
                 , sources: {}
                 };
               }
-              
+
               if (!curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name]){
                 curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name] = {
                   damage_done: 0
@@ -202,7 +203,7 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               if (!curr_encounter.damage_taken_details[target_identifier].sources[source_identifier]){
                 curr_encounter.damage_taken_details[target_identifier].sources[source_identifier] = {
                   damage_done: 0
@@ -214,7 +215,7 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].damage_done += obj.effect_value.amt;
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].hits += 1;
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
@@ -222,7 +223,7 @@ function restartParser(app_settings){
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].absorb_amt += obj.effect_value.absorb_amt;
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].misses += obj.effect_value.type === "-miss" ? 1 : 0;
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
-              
+
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].damage_done += obj.effect_value.amt;
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].hits += 1;
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
@@ -232,18 +233,22 @@ function restartParser(app_settings){
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
             }
 
+            if (!obj.event_target.is_player){
+              curr_encounter.damage_targets[target_identifier] = (curr_encounter.damage_targets[target_identifier] || 0) + obj.effect_value.amt;
+            }
+
           }
           else if (obj.effect.name === "Heal"){
             if (obj.event_source.is_player){
               curr_encounter.healing_done[source_identifier] = (curr_encounter.healing_done[source_identifier] || 0) + obj.effect_value.amt;
-              
+
               if (!curr_encounter.healing_done_details[source_identifier]){
                 curr_encounter.healing_done_details[source_identifier] = {
                   abilities: {}
                 , targets: {}
                 };
               }
-              
+
               if (!curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name]){
                 curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name] = {
                   healing_done: 0
@@ -251,7 +256,7 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               if (!curr_encounter.healing_done_details[source_identifier].targets[target_identifier]){
                 curr_encounter.healing_done_details[source_identifier].targets[target_identifier] = {
                   healing_done: 0
@@ -259,11 +264,11 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name].healing_done += obj.effect_value.amt;
               curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name].heals += 1;
               curr_encounter.healing_done_details[source_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
-              
+
               curr_encounter.healing_done_details[source_identifier].targets[target_identifier].healing_done += obj.effect_value.amt;
               curr_encounter.healing_done_details[source_identifier].targets[target_identifier].heals += 1;
               curr_encounter.healing_done_details[source_identifier].targets[target_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
@@ -271,14 +276,14 @@ function restartParser(app_settings){
 
             if (obj.event_target.is_player){
               curr_encounter.healing_taken[target_identifier] = (curr_encounter.healing_taken[target_identifier] || 0) + obj.effect_value.amt;
-              
+
               if (!curr_encounter.healing_taken_details[target_identifier]){
                 curr_encounter.healing_taken_details[target_identifier] = {
                   abilities: {}
                 , sources: {}
                 };
               }
-              
+
               if (!curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name]){
                 curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name] = {
                   healing_done: 0
@@ -286,7 +291,7 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               if (!curr_encounter.healing_taken_details[target_identifier].sources[source_identifier]){
                 curr_encounter.healing_taken_details[target_identifier].sources[source_identifier] = {
                   healing_done: 0
@@ -294,29 +299,29 @@ function restartParser(app_settings){
                 , crits: 0
                 }
               }
-              
+
               curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name].healing_done += obj.effect_value.amt;
               curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name].heals += 1;
               curr_encounter.healing_taken_details[target_identifier].abilities[obj.ability.name].crits += obj.effect_value.is_crit ? 1 : 0;
-              
+
               curr_encounter.healing_taken_details[target_identifier].sources[source_identifier].healing_done += obj.effect_value.amt;
               curr_encounter.healing_taken_details[target_identifier].sources[source_identifier].heals += 1;
               curr_encounter.healing_taken_details[target_identifier].sources[source_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
             }
           }
-          
+
           if (obj.threat && obj.event_source.is_player) {
             //TODO: more interesting threat details
             curr_encounter.threat[source_identifier] = (curr_encounter.threat[source_identifier] || 0) + (obj.threat || 0);
-            
+
             if (!curr_encounter.threat_details.sources[source_identifier]){
               curr_encounter.threat_details.sources[source_identifier] = {};
             }
-            
+
             if (!curr_encounter.threat_details.targets[target_identifier]){
               curr_encounter.threat_details.targets[target_identifier] = {};
             }
-            
+
             curr_encounter.threat_details.sources[source_identifier][target_identifier] = (curr_encounter.threat_details.sources[source_identifier][target_identifier] || 0) + (obj.threat || 0);
             curr_encounter.threat_details.targets[target_identifier][source_identifier] = (curr_encounter.threat_details.targets[target_identifier][source_identifier] || 0) + (obj.threat || 0);
           }

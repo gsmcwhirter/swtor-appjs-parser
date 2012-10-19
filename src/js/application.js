@@ -459,7 +459,10 @@ addEventListener('app-ready', function (err){
     });
   });
 
-  var statistics_focus = null;
+  var statistics_focus = null
+    , last_enc = null
+    , last_left_sel = null
+    ;
 
   function updateEncounterStatistics(){
     logger.log('debug', 'updateEncounterStatistics tick');
@@ -482,15 +485,30 @@ addEventListener('app-ready', function (err){
     }
 
     if (encounter_index !== -1){
+      if (last_enc !== encounter_index){
+        display.forceRedrawDetails($("#stats .mid_stats .content, #stats .right_stats .content"));
+        last_enc = encounter_index;
+      }
+
+      if (last_left_sel !== $("select#left_selector").val()){
+        display.forceRedrawDetails($("#stats .mid_stats .content, #stats .right_stats .content"));
+        last_left_sel = $("select#left_selector").val();
+      }
+
       display.updateParserData($("#stats .left_stats .content ol"), $("select#left_selector").val(), encounter_index, function (focus_li){
         statistics_focus = $(focus_li).find("span.name").text();
+        display.forceRedrawDetails($("#stats .mid_stats .content, #stats .right_stats .content"));
       });
       display.updateDetailedData1($("#stats .mid_stats .content"), $("select#left_selector").val(), encounter_index, statistics_focus);
       display.updateDetailedData2($("#stats .right_stats .content"), $("select#left_selector").val(), encounter_index, statistics_focus);
     }
   }
 
-  setInterval(updateEncounterStatistics, 2000);
+  var _intid = setInterval(updateEncounterStatistics, 2000);
+
+  window.stopUpdates = function (){
+    clearInterval(_intid);
+  }
 
 
 });

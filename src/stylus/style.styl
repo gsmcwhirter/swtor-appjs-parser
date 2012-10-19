@@ -51,6 +51,7 @@ body.main
     border 1px solid black
 
   header
+    cursor pointer
     background-color #aaa
     height titlebar-height
     border-top-left-radius border-rad
@@ -215,6 +216,7 @@ body.overlay
     border 1px solid black
 
   header
+    cursor pointer
     background-color #aaa
     height overlay-titlebar-height
     border-top-left-radius overlay-border-rad
@@ -282,6 +284,18 @@ body.overlay, #stats
         font-weight 500
         display block
         position relative
+        cursor pointer
+        overflow show
+
+        span.tooltip
+          display none
+          padding-left 10px
+          font-size 14px
+          white-space nowrap
+
+        span.tooltip.showing
+          display block
+          width 100%
 
         span.color-bar
           position absolute
@@ -335,3 +349,5 @@ body.overlay, #stats
           left 5px
           z-index 3
           display block
+          white-space nowrap
+          overflow hidden
