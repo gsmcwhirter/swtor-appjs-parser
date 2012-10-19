@@ -2,6 +2,7 @@ var app = module.exports = require('appjs')
   , ConsoleStream = require('console_stream')
   , Settings = require('./settings')
   , path = require('path')
+  , packjson = require(path.resolve(path.join(__dirname, "..", "package.json")))
   , overlays_available = [
       "Damage Done"
     , "Damage Done per Second"
@@ -80,6 +81,7 @@ function configureWindow(win){
   win.createOverlay = createOverlay;
   win.configureOverlay = configureWindow;
   win.overlay_windows = overlay_windows;
+  win.app_version = packjson.build_version + "-" + packjson.build_number;
 
   win.addEventListener('keydown', function(e){
     if (F12(e) || Command_Option_J(e)) {

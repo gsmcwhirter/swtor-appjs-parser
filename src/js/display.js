@@ -24,7 +24,6 @@ module.exports = {
 , updateParserData: updateParserData
 , updateDetailedData1: updateDetailedData1
 , updateDetailedData2: updateDetailedData2
-, detectAdvancedClass: detectAdvancedClass
 , forceRedrawDetails: forceRedrawDetails
 , logger: logger
 }
@@ -123,6 +122,7 @@ function displayDetailData(ol, data){
       }
       else {
         ret += "<li>.";
+        ret += "<span class='expand-control downarrow'></span>";
         //ret += "<span class='value'>" + row[1].damage_done + "</span>";
         ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1].damage_done / max * 100)) + "%;'>.</span>";
         ret += "<span class='name' data-name='" + row[0] + "' data-val='" + row[1].damage_done + "'>" + row[0] + "</span>";
@@ -176,6 +176,7 @@ function displayDetailData(ol, data){
       }
       else {
         ret += "<li>.";
+        ret += "<span class='expand-control downarrow'></span>";
         //ret += "<span class='value'>" + row[1].healing_done + "</span>";
         ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1].healing_done / max * 100)) + "%;'>.</span>";
         ret += "<span class='name' data-name='" + row[0] + "' data-val='" + row[1].healing_done + "'>" + row[0] + "</span>";
@@ -204,10 +205,6 @@ function sortList(ol){
     var bval = parseInt($(b).attr('data-val') || 0)
       , aval = parseInt($(a).attr('data-val') || 0)
       ;
-
-    /*if (bval > aval){ return 1; }
-    else if (bval === aval){ return 0; }
-    else { return -1; }*/
 
     return bval > aval;
   });
@@ -350,8 +347,15 @@ function updateDetailedData1(target, overlay_name, encounter_index, focus_target
           target.find('ol').html("<li>Not implemented =(</li>");
       }
 
-      target.find('ol li span.name').on('click', function (){
-        $(this).parent().find('span.tooltip').toggleClass('showing');
+      target.find('ol li span.expand-control').on('click', function (){
+        var tooltip = $(this).parent().find('span.tooltip');
+        tooltip.toggleClass('showing');
+        if (tooltip.hasClass('showing')){
+          $(this).removeClass('downarrow').addClass('uparrow');
+        }
+        else {
+          $(this).removeClass('uparrow').addClass('downarrow');
+        }
       });
     }
 
@@ -393,8 +397,15 @@ function updateDetailedData2(target, overlay_name, encounter_index, focus_target
           target.find('ol').html("<li>Not implemented =(</li>");
       }
 
-      target.find('ol li span.name').on('click', function (){
-        $(this).parent().find('span.tooltip').toggleClass('showing');
+      target.find('ol li span.expand-control').on('click', function (){
+        var tooltip = $(this).parent().find('span.tooltip');
+        tooltip.toggleClass('showing');
+        if (tooltip.hasClass('showing')){
+          $(this).removeClass('downarrow').addClass('uparrow');
+        }
+        else {
+          $(this).removeClass('uparrow').addClass('downarrow');
+        }
       });
     }
   }
@@ -425,10 +436,4 @@ function getEncounter(encounter_index){
   logger.log('debug', data);
 
   return false;
-}
-
-
-
-function detectAdvancedClass(encounter, player_name){
-
 }

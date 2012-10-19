@@ -22,6 +22,18 @@ desc('create distributable folder');
 task('dist', ['build', 'wip', path.join('wip', 'data')], function (){
   copy('app.exe', path.join('wip', 'app.exe'));
   copy_dir('data', path.join('wip', 'data'));
+  
+  var packjson = require(path.join(__dirname, "package.json"));
+  if (packjson.version !== packjson.build_version){
+    packjson.build_number = 0;
+    packjson.build_version = packjson.version;
+  }
+  
+  packjson.build_number += 1;
+  
+  fs.writeFileSync(path.join(__dirname, "package.json"), JSON.stringify(packjson, null, 2), 'utf8');
+  
+  fs.renameSync('wip', 'wip-' + packjson.version + '-' + packjson.build_number);
 });
 
 desc('creates the wip folder');

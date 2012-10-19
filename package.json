@@ -1,6 +1,8 @@
 {
   "name": "node-swtor",
   "version": "0.0.1",
+  "build_version": "0.0.1",
+  "build_number": 2,
   "description": "SWTOR Combat Logging",
   "main": "app.js",
   "dependencies": {

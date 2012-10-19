@@ -35,6 +35,25 @@ overlay-border-rad = 6px
 ::-webkit-scrollbar-thumb:vertical { height: 30px;}
 ::-webkit-scrollbar-thumb:horizontal { width: 30px;}
 
+span.uparrow, span.downarrow, span.leftarrow, span.rightarrow
+  display block
+  height 13px
+  width 13px
+  background-color transparent
+  background-image url('../icons/arrows.png')
+  
+span.uparrow
+  background-position -6px -1.5px
+  
+span.downarrow
+  background-position -58px -1.5px
+  
+span.leftarrow
+  background-position -81px -1.5px
+  
+span.rightarrow
+  background-position -32px -1.5px
+
 html, body
   background-color transparent
   color black
@@ -52,6 +71,8 @@ body.main
 
   header
     cursor pointer
+    -webkit-user-select:none;
+    user-select: none;
     background-color #aaa
     height titlebar-height
     border-top-left-radius border-rad
@@ -102,6 +123,11 @@ body.main
     font-size 2px
     border-bottom-left-radius border-rad
     border-bottom-right-radius border-rad
+    
+    .version
+      float right
+      font-size 10px
+      margin-right 10px
 
   .buttonset
     a
@@ -115,6 +141,8 @@ body.main
       text-decoration none
       color link-color
       background-color #eee
+      -webkit-user-select none
+      user-select none
     a.selected
       background-color selected-color
       color selected-link-color
@@ -151,11 +179,30 @@ body.main
         font-weight bold
         display block
         margin-top 10px
-
-      span.enablebutton.buttonset
+          
+      .buttonset
         a
+          -webkit-user-select:none;
+          user-select: none;
           display inline
           width auto
+          padding 1px 5px
+          text-decoration none
+          color black
+          background-color #ccc
+          -webkit-border-radius 4px
+          border-radius 4px
+          border 1px solid #888
+          text-shadow 0 -1px 0 rgba(255, 255, 255, 0.4)
+          -webkit-box-shadow inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2)
+          box-shadow inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2)
+          
+          -webkit-transition-duration 0.2s
+          transform-duration 0.2s
+          
+        a:hover, a:focus
+          text-decoration none
+          color selected-color - 50%
 
     #stats
       .left_stats, .right_stats, .mid_stats
@@ -217,6 +264,8 @@ body.overlay
 
   header
     cursor pointer
+    -webkit-user-select:none;
+    user-select: none;
     background-color #aaa
     height overlay-titlebar-height
     border-top-left-radius overlay-border-rad
@@ -279,6 +328,8 @@ body.overlay, #stats
       padding 0
 
       li
+        -webkit-user-select:none;
+        user-select: none;
         font-size 14px
         font-family Helvetica, Arial, sans-serif
         font-weight 500
@@ -289,11 +340,16 @@ body.overlay, #stats
 
         span.tooltip
           display none
-          padding-left 10px
+          margin-left 10px
           font-size 14px
           white-space nowrap
+          background-color #ddd
+          border 1px solid #aaa
+          border-top none
 
         span.tooltip.showing
+          -webkit-user-select: text;
+          user-select: text;
           display block
           width 100%
 
@@ -335,8 +391,40 @@ body.overlay, #stats
         span.color-bar.color-8
           background-color orange
           color orange
+          
+        span.color-bar.color-commando
+          background-color orange
+          color orange
+        
+        span.color-bar.color-vanguard
+          background-color orange
+          color orange
+          
+        span.color-bar.color-shadow
+          background-color orange
+          color orange
+          
+        span.color-bar.color-sage
+          background-color orange
+          color orange
+          
+        span.color-bar.color-guardian
+          background-color orange
+          color orange
+          
+        span.color-bar.color-sentinel
+          background-color orange
+          color orange
+          
+        span.color-bar.color-scoundrel
+          background-color orange
+          color orange
+          
+        span.color-bar.color-gunslinger
+          background-color orange
+          color orange
 
-        span.value
+        span.value, span.expand-control
           position absolute
           top 0
           right 5px

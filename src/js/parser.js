@@ -4,6 +4,7 @@ var logger = new (require('./logger'))("parser.js")
   , parser = null
   , parser_data = {
     encounters: []
+  , player_classes: {}
   }
   ;
 
@@ -77,25 +78,16 @@ function restartParser(app_settings){
           if (!parser_data.encounters[parser_data.encounters.length - 1] || parser_data.encounters[parser_data.encounters.length - 1].end_time){
             logger.log('info', 'starting new encounter')
             //new encounter
-            parser_data.encounters.push({
-              damage_done: {}
-            , damage_done_details: {}
-            , damage_taken: {}
-            , damage_taken_details: {}
-            , healing_done: {}
-            , healing_done_details: {}
-            , healing_taken: {}
-            , healing_taken_details: {}
-            , threat: {}
-            , threat_details: {
-              targets: {}
-            , sources: {}
-            }
-            , damage_targets: {} //used to find the protagonist of the encounter
-            , temp_start_time: (new Date()).getTime()
-            , start_time: obj.timestamp
-            , end_time: null
-            });
+            var tmplate = generateEncounterTemplate();
+            tmplate.temp_start_time = (new Date()).getTime();
+            tmplate.start_time = obj.timestamp;
+            tmplate.end_time = null;
+            parser_data.encounters.push(tmplate);
+            
+            /* Used to account for battle rez's and combat stealth for regen purposes */
+            parser_data.temp_encounter = generateEncounterTemplate();
+            
+            parser_data.use_temp = false;
           }
           else {
             logger.log('debug', 'starting new encounter');
@@ -108,17 +100,22 @@ function restartParser(app_settings){
         /* Check for Ending Encounter */
         else if (obj.effect.name === "ExitCombat" || (obj.effect.name === "Death" && obj.event_target.is_player)){
           logger.log('info', 'ending current encounter');
-
+          
           if (parser_data.encounters[parser_data.encounters.length - 1]){
             parser_data.encounters[parser_data.encounters.length - 1].end_time = obj.timestamp;
+            parser_data.use_temp = true;
           }
 
           logger.log('debug', parser_data.encounters);
         }
+        
+        else if (false){
+          //TODO: Check for battle rez / combat stealth and then merge the temp_encounter with the real one
+          
+        }
 
         /* Read event data */
         else {
-
           var curr_encounter = (parser_data.encounters) ? parser_data.encounters[parser_data.encounters.length - 1] : null;
 
           if (!curr_encounter){
@@ -127,7 +124,13 @@ function restartParser(app_settings){
 
           if ((curr_encounter.end_time && obj.timestamp > curr_encounter.end_time) || !curr_encounter.start_time || obj.timestamp < curr_encounter.start_time){
             logger.log('error', 'packet unexpected: %s', obj.effect.name);
-            return;
+            
+            if (parser_data.use_temp){
+              curr_encounter = parser_data.temp_encounter;
+            }
+            else {
+              return;
+            }
           }
 
           if (obj.effect.name === "Damage"){
@@ -224,7 +227,7 @@ function restartParser(app_settings){
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].misses += obj.effect_value.type === "-miss" ? 1 : 0;
               curr_encounter.damage_taken_details[target_identifier].abilities[obj.ability.name].dodges += obj.effect_value.type === "-dodge" ? 1 : 0;
 
-              curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].damage_done += obj.effect_value.amt;
+              curr	_encounter.damage_taken_details[target_identifier].sources[source_identifier].damage_done += obj.effect_value.amt;
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].hits += 1;
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].crits += obj.effect_value.is_crit ? 1 : 0;
               curr_encounter.damage_taken_details[target_identifier].sources[source_identifier].absorbs += obj.effect_value.absorb_amt === 0 ? 0 : 1;
@@ -341,4 +344,27 @@ function restartParser(app_settings){
     parser = null;
     logger.log('debug', "combat log directory doesn't exist or isn't a directory");
   }
+}
+
+function generateEncounterTemplate(){
+  return {
+    damage_done: {}
+  , damage_done_details: {}
+  , damage_taken: {}
+  , damage_taken_details: {}
+  , healing_done: {}
+  , healing_done_details: {}
+  , healing_taken: {}
+  , healing_taken_details: {}
+  , threat: {}
+  , threat_details: {
+    targets: {}
+  , sources: {}
+  }
+  , damage_targets: {} //used to find the protagonist of the encounter
+  };
+}
+
+function detectAdvancedClass(packet, player_name){
+  
 }
