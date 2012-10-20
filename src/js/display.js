@@ -1,4 +1,5 @@
 var logger = new (require('./logger'))("display.js")
+  , parser = require('./parser')
   , $ = require('jquery')
   , detail_headers = {
     "Damage Done": ["Abilities", "Targets"]
@@ -51,7 +52,7 @@ function dataToArray(obj){
   return arr;
 }
 
-function displayBarData(data){
+function displayBarData(data, ac_ids){
   data.sort(function (a, b){
     if (b[1] > a[1]){
       return 1;
@@ -74,7 +75,7 @@ function displayBarData(data){
   data.forEach(function (row, index){
     ret += "<li>.";
     ret += "<span class='value'>" + row[1] + "</span>";
-    ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1] / max * 100)) + "%;'>.</span>";
+    ret += "<span class='color-bar color-" + ((index % 8) + 1) + (ac_ids[row[0]] ? " color-" + ac_ids[row[0]] : "") + "' style='width: " + (max === 0 ? 0 : Math.round(row[1] / max * 100)) + "%;'>.</span>";
     ret += "<span class='name'>" + row[0] + "</span>";
     ret += "</li>";
   });
@@ -105,13 +106,13 @@ function displayDetailData(ol, data){
     data.forEach(function (row, index){
       var ret = '';
       var theli = ol.find('li span.name[data-name=\'' + row[0] + '\']');
-      console.log('info', row[0]);
-      console.log('info', theli);
+      console.log('debug', row[0]);
+      console.log('debug', theli);
       if (theli.length){
         theli = theli.parent();
         theli.find('span.color-bar').css('width', (max === 0 ? 0 : Math.round(row[1].damage_done / max * 100)) + "%");
         theli.find('span.tooltip').html([
-          "Damage Done: " + row[1].damage_done
+          "Damage Done: " + row[1].damage_done // + "(" +  + "%)"
         , "Ticks: " + row[1].hits
         , "Crits: " + row[1].crits
         , "Misses: " + row[1].misses
@@ -123,7 +124,6 @@ function displayDetailData(ol, data){
       else {
         ret += "<li>.";
         ret += "<span class='expand-control downarrow'></span>";
-        //ret += "<span class='value'>" + row[1].damage_done + "</span>";
         ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1].damage_done / max * 100)) + "%;'>.</span>";
         ret += "<span class='name' data-name='" + row[0] + "' data-val='" + row[1].damage_done + "'>" + row[0] + "</span>";
         ret += "<span class='tooltip'>";
@@ -163,8 +163,8 @@ function displayDetailData(ol, data){
     data.forEach(function (row, index){
       var ret = '';
       var theli = ol.find('li span.name[data-name=\'' + row[0] + '\']');
-      console.log('info', row[0]);
-      console.log('info', theli);
+      console.log('debug', row[0]);
+      console.log('debug', theli);
       if (theli.length){
         theli = theli.parent();
         theli.find('span.color-bar').css('width', (max === 0 ? 0 : Math.round(row[1].healing_done / max * 100)) + "%");
@@ -177,7 +177,6 @@ function displayDetailData(ol, data){
       else {
         ret += "<li>.";
         ret += "<span class='expand-control downarrow'></span>";
-        //ret += "<span class='value'>" + row[1].healing_done + "</span>";
         ret += "<span class='color-bar color-" + ((index % 8) + 1) + "' style='width: " + (max === 0 ? 0 : Math.round(row[1].healing_done / max * 100)) + "%;'>.</span>";
         ret += "<span class='name' data-name='" + row[0] + "' data-val='" + row[1].healing_done + "'>" + row[0] + "</span>";
         ret += "<span class='tooltip'>";
@@ -240,56 +239,59 @@ function updateParserData(target, overlay_name, encounter_index, li_onclick_func
       logger.log('debug', (new Date(curr_encounter.start_time)).toString());
       logger.log('debug', end_time - curr_encounter.start_time);
 
+      var ac_ids = parser.getParserData().player_classes || {};
+      logger.log('debug', 'ac_ids');
+      logger.log('debug', ac_ids);
 
       switch(overlay_name){
         case "Damage Done":
-          target.html(displayBarData(dataToArray(curr_encounter.damage_done)));
+          target.html(displayBarData(dataToArray(curr_encounter.damage_done), ac_ids));
 
           break;
         case "Damage Done per Second":
           target.html(displayBarData(dataToArray(curr_encounter.damage_done).map(function (row){
             return [row[0], Math.round(1000 * row[1] / (end_time - start_time))];
-          })));
+          }), ac_ids));
 
           break;
         case "Damage Taken":
-          target.html(displayBarData(dataToArray(curr_encounter.damage_taken)));
+          target.html(displayBarData(dataToArray(curr_encounter.damage_taken), ac_ids));
 
           break;
         case "Damage Taken per Second":
           target.html(displayBarData(dataToArray(curr_encounter.damage_taken).map(function (row){
             return [row[0], Math.round(1000 * row[1] / (end_time - start_time))];
-          })));
+          }), ac_ids));
 
           break;
         case "Healing Done":
-          target.html(displayBarData(dataToArray(curr_encounter.healing_done)));
+          target.html(displayBarData(dataToArray(curr_encounter.healing_done), ac_ids));
 
           break;
         case "Healing Done per Second":
           target.html(displayBarData(dataToArray(curr_encounter.healing_done).map(function (row){
             return [row[0], Math.round(1000 * row[1] / (end_time - start_time))];
-          })));
+          }), ac_ids));
 
           break;
         case "Healing Received":
-          target.html(displayBarData(dataToArray(curr_encounter.healing_taken)));
+          target.html(displayBarData(dataToArray(curr_encounter.healing_taken), ac_ids));
 
           break;
         case "Healing Received per Second":
           target.html(displayBarData(dataToArray(curr_encounter.healing_taken).map(function (row){
             return [row[0], Math.round(1000 * row[1] / (end_time - start_time))];
-          })));
+          }), ac_ids));
 
           break;
         case "Threat":
-          target.html(displayBarData(dataToArray(curr_encounter.threat)));
+          target.html(displayBarData(dataToArray(curr_encounter.threat), ac_ids));
 
           break;
         case "Threat per Second":
           target.html(displayBarData(dataToArray(curr_encounter.threat).map(function (row){
             return [row[0], Math.round(1000 * row[1] / (end_time - start_time))];
-          })));
+          }), ac_ids));
 
           break;
         default:
@@ -417,7 +419,7 @@ function forceRedrawDetails(target){
 
 function getEncounter(encounter_index){
   logger.log('debug', "getEncounter %s", encounter_index);
-  var data = getParserData();
+  var data = parser.getParserData();
   logger.log('debug', data);
 
   if (data && data.encounters){

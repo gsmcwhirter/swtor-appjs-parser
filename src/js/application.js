@@ -266,6 +266,8 @@ addEventListener('app-ready', function (err){
 
   });
 
+  $("footer .version").text(app_version);
+
   /* Configure overlays menu */
   if (!overlays_set){
     app_overlays.forEach(function (overlay){
