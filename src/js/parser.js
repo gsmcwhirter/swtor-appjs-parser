@@ -111,7 +111,11 @@ function restartParser(app_settings){
 
         else if (false){
           //TODO: Check for battle rez / combat stealth and then merge the temp_encounter with the real one
-
+          var curr_encounter = (parser_data.encounters) ? parser_data.encounters[parser_data.encounters.length - 1] : null;
+          if (curr_encounter){
+            curr_encounter = additiveMerge(curr_encounter, data_parser.temp_encounter);
+            curr_encounter.end_time = null;  
+          }
         }
 
         /* Read event data */
@@ -366,5 +370,49 @@ function generateEncounterTemplate(){
 }
 
 function detectAdvancedClass(packet, player_name){
+  if (!parser_data.player_classes[player_name]){   
+    var ac = null;
+    
+    //TODO: imperial counterparts
+    switch (packet.ability.name){
+      case "Medical Probe":
+      case "Advanced Medical Probe":
+      case "Grav Round":
+      case "Demolition Round":
+      //TODO: something in shared tree
+        ac = "commando"; 
+        break;
+      case "Slow Time":
+      case "Force Breach":
+      case "Clairvoyant Strike":
+      //TODO: something in shared tree
+        ac = "shadow";
+        break;
+      //TODO: other ACs
+      default:
+        ac = null;
+    }
+    parser_data.player_classes[player_name] = ac;
+  }
+  
+  return player_classes[player_name];
+}
 
+function additiveMerge(into, from){
+  for (key in from){
+    if (into[key] && typeof into[key] !== "object"){
+      into[key] = into[key] + from[key];
+    }
+    else if (into[key] && typeof into[key].length !== "undefined"){
+      into[key] = into[key].concat(from[key]);
+    }
+    else if (into[key]){
+      additiveMerge(into[key], from[key]);
+    }
+    else {
+      into[key] = from[key];
+    }
+  }
+  
+  return into;
 }
