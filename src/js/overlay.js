@@ -1,4 +1,5 @@
 var $ = require('jquery')
+  , display = require('./display')
   , logger = null
   ;
 
@@ -20,7 +21,7 @@ addEventListener('app-ready', function (event){
   logger = new (require("./logger"))("overlay.js#" + overlay_name)
     ;
 
-  logger.setLogLevel('debug');
+  logger.setLogLevel('info');
 
   logger.log('debug', 'app-ready triggered');
 
@@ -49,9 +50,12 @@ addEventListener('app-ready', function (event){
 
   /* refresh data on an interval */
 
+  var data_display = new display.BarDataDisplay($(".content ol"), overlay_name, parser, -1);
+
   var _intid = setInterval(function (){
     logger.log('debug', 'updateParserData wrapper tick');
-    var timers = updateParserData($(".content ol"), overlay_name);
+    data_display.setEncounter(-1);
+    var timers = data_display.redraw();
 
     if (timers){
       var start_time = timers[0]
@@ -69,16 +73,4 @@ addEventListener('app-ready', function (event){
     clearInterval(_intid);
   }
 
-});
-
-addEventListener('enable-file-logging', function (){
-  if (logger !== null){
-    logger.enableFileLog();
-  }
-});
-
-addEventListener('disable-file-logging', function (){
-  if (logger !== null){
-    logger.disableFileLog();
-  }
 });
