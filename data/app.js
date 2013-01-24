@@ -94,7 +94,7 @@ var statusIcon = app.createStatusIcon({
 , menu: trayMenu
 });
 
-function createOverlay(){
+function createOverlay(title){
   return app.createWindow('appjs/overlay.html', {
     width: 200
   , height: 300
@@ -106,6 +106,7 @@ function createOverlay(){
   , resizable: false
   , left: 0
   , top: 0
+  , title: title || ""
   });
 }
 

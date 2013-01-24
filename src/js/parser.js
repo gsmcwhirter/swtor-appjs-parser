@@ -56,7 +56,7 @@ function restartParser(app_settings){
       if (obj){
         logger.log('debug', obj);
         logger.log('debug', parser_data);
-        var source_identifier, target_identifier;
+        var source_identifier, target_identifier, curr_encounter;
 
         if (obj.event_source.is_player || !obj.event_source.unique_id){
           source_identifier = obj.event_source.name;
@@ -74,9 +74,9 @@ function restartParser(app_settings){
 
         /* Check for new encounter */
         if (obj.effect.name === "EnterCombat"){
-          logger.log('info', 'enter combat event')
+          logger.log('debug', 'enter combat event')
           if (!parser_data.encounters[parser_data.encounters.length - 1] || parser_data.encounters[parser_data.encounters.length - 1].end_time){
-            logger.log('info', 'starting new encounter')
+            logger.log('debug', 'starting new encounter')
             //new encounter
             var tmplate = generateEncounterTemplate();
             tmplate.temp_start_time = (new Date()).getTime();
@@ -99,7 +99,7 @@ function restartParser(app_settings){
 
         /* Check for Ending Encounter */
         else if (obj.effect.name === "ExitCombat" || (obj.effect.name === "Death" && obj.event_target.is_player)){
-          logger.log('info', 'ending current encounter');
+          logger.log('debug', 'ending current encounter');
 
           if (parser_data.encounters[parser_data.encounters.length - 1]){
             parser_data.encounters[parser_data.encounters.length - 1].end_time = obj.timestamp;
@@ -111,16 +111,16 @@ function restartParser(app_settings){
 
         else if (false){
           //TODO: Check for battle rez / combat stealth and then merge the temp_encounter with the real one
-          var curr_encounter = (parser_data.encounters) ? parser_data.encounters[parser_data.encounters.length - 1] : null;
+          curr_encounter = (parser_data.encounters) ? parser_data.encounters[parser_data.encounters.length - 1] : null;
           if (curr_encounter){
             curr_encounter = additiveMerge(curr_encounter, data_parser.temp_encounter);
-            curr_encounter.end_time = null;  
+            curr_encounter.end_time = null;
           }
         }
 
         /* Read event data */
         else {
-          var curr_encounter = (parser_data.encounters) ? parser_data.encounters[parser_data.encounters.length - 1] : null;
+          curr_encounter = (parser_data.encounters) ? parser_data.encounters[parser_data.encounters.length - 1] : null;
 
           if (!curr_encounter){
             return;
@@ -333,6 +333,10 @@ function restartParser(app_settings){
             curr_encounter.threat_details.targets[target_identifier][source_identifier] = (curr_encounter.threat_details.targets[target_identifier][source_identifier] || 0) + (obj.threat || 0);
           }
 
+          if (obj.event_source.is_player){
+            detectAdvancedClass(obj, source_identifier);
+          }
+
           logger.log('debug', curr_encounter);
           logger.log('debug', parser_data.encounters);
         }
@@ -370,32 +374,88 @@ function generateEncounterTemplate(){
 }
 
 function detectAdvancedClass(packet, player_name){
-  if (!parser_data.player_classes[player_name]){   
+  if (!parser_data.player_classes[player_name] && packet.ability){
     var ac = null;
-    
+
+    logger.log('debug', 'detecting advanced class for %s', player_name);
+
     //TODO: imperial counterparts
     switch (packet.ability.name){
       case "Medical Probe":
       case "Advanced Medical Probe":
       case "Grav Round":
       case "Demolition Round":
-      //TODO: something in shared tree
-        ac = "commando"; 
+      case "Charged Bolts":
+      case "Hail of Bolts":
+        ac = "commando";
+        break;
+      case "Harpoon":
+      case "Energy Blast":
+      case "Fire Pulse":
+      case "Gut":
+      case "Storm":
+      case "Ion Pulse":
+        ac = "vanguard";
         break;
       case "Slow Time":
       case "Force Breach":
       case "Clairvoyant Strike":
-      //TODO: something in shared tree
+      case "Shadow Strike":
+      case "Force Pull":
         ac = "shadow";
         break;
-      //TODO: other ACs
+      case "Deliverance":
+      case "Healing Trance":
+      case "Disturbance":
+      case "Weaken Mind":
+      case "Force Mend":
+        ac = "sage";
+        break;
+      case "Guardian Slash":
+      case "Hilt Strike":
+      case "Sundering Strike":
+      case "Plasma Brand":
+      case "Overhead Slash":
+        ac = "guardian";
+        break;
+      case "Merciless Slash":
+      case "Cauterize":
+      case "Overload Saber":
+      case "Precision Slash":
+      case "Blade Rush":
+      case "Crippling Throw":
+      case "Leg Slash":
+      case "Zealous Strike":
+        ac = "sentinel";
+        break;
+      case "Kolto Cloud":
+      case "Emergency Medpac":
+      case "Slow-release Medpac":
+      case "Underworld Medicine":
+      case "Sucker Punch":
+      case "Back Blast":
+      case "Flechette Round":
+        ac = "scoundrel";
+        break;
+      case "Burst Volley":
+      case "Speed Shot":
+      case "Charged Burst":
+      case "Aimed Shot":
+      case "Trickshot":
+      case "Shock Charge":
+      case "Incendiary Grenade":
+        ac = "gunslinger";
+        break;
       default:
         ac = null;
     }
+
+    logger.log('debug', 'got ac %s', ac);
+
     parser_data.player_classes[player_name] = ac;
   }
-  
-  return player_classes[player_name];
+
+  return parser_data.player_classes[player_name];
 }
 
 function additiveMerge(into, from){
@@ -413,6 +473,6 @@ function additiveMerge(into, from){
       into[key] = from[key];
     }
   }
-  
+
   return into;
 }

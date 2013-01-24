@@ -17,5 +17,6 @@
   , "logger.js"
   , "display.js"
   , "parser.js"
+  , "overlay_handler.js"
   ]
 }
