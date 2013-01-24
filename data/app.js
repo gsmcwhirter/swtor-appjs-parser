@@ -53,6 +53,47 @@ var window = app.createWindow({
 , disableSecurity: true
 });
 
+//var mainMenu = app.createMenu([
+//  {
+//    label:'&File'
+//  , submenu: [
+//    {
+//      label:'E&xit'
+//    , action: function(){
+//        window.close();
+//      }
+//    }
+//  ]
+//  }
+//]);
+//
+//mainMenu.on('select',function(item){
+//  console.log("menu item "+item.label+" clicked");
+//});
+
+var trayMenu = app.createMenu([{
+  label:'Show',
+  action:function(){
+    window.frame.show();
+  },
+},{
+  label:'Minimize',
+  action:function(){
+    window.frame.hide();
+  }
+},{
+  label:'Exit',
+  action:function(){
+    window.close();
+  }
+}]);
+
+var statusIcon = app.createStatusIcon({
+  icon: './data/content/icons/32.png'
+, tooltip: 'Combat Log Parser'
+, menu: trayMenu
+});
+
 function createOverlay(){
   return app.createWindow('appjs/overlay.html', {
     width: 200
@@ -101,6 +142,7 @@ console.log(window);
 window.on('create', function(){
   console.log("Window Created");
   settings.load();
+  //window.frame.setMenuBar(mainMenu);
 });
 
 window.on('ready', function(){
